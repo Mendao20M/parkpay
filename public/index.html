@@ -1,0 +1,1435 @@
+**<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141310">
+<title>ParkPay — Pague seu estacionamento sem fila</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F2EC; --surface:#FFFFFF; --ink:#191813; --ink2:#77746A; --ink3:#A5A296;
+  --line:#E5E2D7; --line2:#D8D4C6; --green:#0E5B3A; --green-h:#0A4A30; --green-soft:#E3EEE7;
+  --red:#B3372A; --red-soft:#F7E8E5; --amber:#8A6D1F; --amber-soft:#F4ECD6;
+  --yel:#FFD645; --yel-ink:#241D02;
+  --r:18px; --shadow:0 1px 2px rgba(25,24,19,.05),0 10px 30px rgba(25,24,19,.07);
+  --mono:'IBM Plex Mono',monospace; --sans:'Space Grotesk',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:var(--sans);background:#141310;color:var(--ink);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;border:0;background:none;cursor:pointer;color:inherit}
+input,select{font-family:inherit;font-size:16px;color:var(--ink)}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:6px}
+svg.ic{width:22px;height:22px;flex:none;display:block}
+.stage{min-height:100vh;display:flex;align-items:center;justify-content:center;gap:72px;padding:48px 40px}
+.stage-info{max-width:420px;color:#F4F2EC;display:flex;flex-direction:column;gap:20px}
+.wordmark{display:flex;align-items:center;gap:12px}
+.wordmark .wt{width:42px;height:30px;border-radius:8px;background:var(--yel);position:relative;flex:none}
+.wordmark .wt::before{content:'';position:absolute;right:9px;top:0;bottom:0;border-left:2px dashed rgba(36,29,2,.4)}
+.wordmark b{font-size:24px;letter-spacing:-.02em}
+.stage-info h1{font-size:clamp(28px,3.2vw,42px);line-height:1.05;letter-spacing:-.02em}
+.stage-info h1 em{font-style:normal;color:var(--yel)}
+.stage-info p{color:#B9B5A8;font-size:15px}
+.stage-info .lbl{font:600 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#8C8879}
+.demo-list{display:flex;flex-direction:column;border-top:1px solid #2B2A24}
+.demo-item{display:flex;align-items:center;gap:14px;padding:11px 2px;border-bottom:1px solid #2B2A24;text-align:left;color:#F4F2EC;width:100%}
+.demo-item:hover{background:#1C1B16}
+.demo-item code{font:600 12px var(--mono);color:var(--yel);background:#24221C;padding:6px 8px;border-radius:6px;white-space:nowrap}
+.demo-item span{font-size:13.5px;color:#C9C6BA}
+.stage-actions{display:flex;gap:10px;flex-wrap:wrap}
+.sbtn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;font:600 14px var(--sans)}
+.sbtn:active{transform:scale(.97)}
+.sbtn.p{background:var(--yel);color:var(--yel-ink)}
+.sbtn.g{border:1px solid #3A382F;color:#F4F2EC}
+.stage-note{font:500 11.5px var(--mono);color:#6E6B5E}
+.phone{width:400px;height:min(868px,94vh);background:var(--bg);border-radius:48px;position:relative;overflow:hidden;display:flex;flex-direction:column;border:11px solid #060605;box-shadow:0 40px 90px rgba(0,0,0,.55),inset 0 0 0 1.5px #2E2C26;flex:none}
+.statusbar{height:52px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 4px;font:600 13px var(--mono);position:relative;z-index:40}
+.statusbar .sbr{display:flex;align-items:center;gap:5px}
+.phone.sb-dark .statusbar{color:#F4F2EC}
+.p-notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:112px;height:26px;background:#060605;border-radius:99px;z-index:50}
+.envbar{flex:none;height:22px;background:var(--amber-soft);color:var(--amber);display:flex;align-items:center;justify-content:center;gap:7px;font:700 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;border-bottom:1px solid #E4D9B4;position:relative;z-index:45}
+.envbar.off{display:none}
+#view{flex:1;position:relative;overflow:hidden}
+.page{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;background:var(--bg);display:flex;flex-direction:column;scrollbar-width:none}
+.page::-webkit-scrollbar{display:none}
+.page.in-fwd{animation:pgF .28s cubic-bezier(.22,.9,.3,1)}
+.page.in-back{animation:pgB .28s cubic-bezier(.22,.9,.3,1)}
+@keyframes pgF{from{transform:translateX(60px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes pgB{from{transform:translateX(-40px);opacity:.4}to{transform:none;opacity:1}}
+.pad{padding:14px 20px 32px}
+.hdr{display:flex;align-items:center;gap:12px;padding:14px 16px 18px;flex:none}
+.hbtn{width:44px;height:44px;border-radius:14px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;flex:none;box-shadow:0 1px 2px rgba(25,24,19,.05)}
+.hbtn:active{transform:scale(.94)}
+.hdr .h1{font-size:19px;font-weight:700;letter-spacing:-.02em}
+.hdr .hsub{font:500 12px var(--mono);color:var(--ink2);margin-top:1px}
+.ov{font:600 10.5px var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--ink2)}
+.mono{font-family:var(--mono)}
+.muted{color:var(--ink2)}
+.grow{flex:1}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;border-radius:16px;font:600 16.5px var(--sans);width:100%;transition:transform .12s}
+.btn:active{transform:scale(.975)}
+.btn-p{background:var(--green);color:#fff}
+.btn-d{background:var(--ink);color:var(--bg)}
+.btn-o{border:1.5px solid var(--line2);background:var(--surface);color:var(--ink)}
+.btn-sm{min-height:44px;font-size:14.5px;border-radius:13px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.lrow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:15px 4px;border-bottom:1px solid var(--line)}
+.lrow:active{opacity:.6}
+.lrow .icw{width:44px;height:44px;border-radius:13px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;flex:none}
+.lrow .lt{font-weight:600;font-size:15.5px}
+.lrow .ld{font-size:12.5px;color:var(--ink2);margin-top:1px}
+.lrow .chev{color:var(--ink3);margin-left:auto;flex:none}
+.badge-n{font:600 11px var(--mono);background:var(--ink);color:var(--bg);border-radius:99px;padding:3px 8px}
+.chip{font:600 11px var(--mono);padding:4px 9px;border-radius:99px;border:1px solid var(--line2);color:var(--ink2);white-space:nowrap;flex:none}
+.chip.ok{color:var(--green);border-color:#BFD5C6;background:var(--green-soft)}
+.chip.warn{color:var(--amber);border-color:#DCCFA4;background:var(--amber-soft)}
+.chip.yel{color:var(--yel-ink);border-color:#E3BE23;background:var(--yel)}
+button.chip{cursor:pointer}
+.banner{display:flex;gap:12px;padding:14px;border-radius:15px;font-size:13.5px;line-height:1.45;border:1px solid}
+.banner svg{width:19px;height:19px;flex:none;margin-top:1px}
+.b-ok{background:var(--green-soft);border-color:#BFD5C6;color:#0A4229}
+.b-inf{background:#EFEDE4;border-color:var(--line2);color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:0 1px 2px rgba(25,24,19,.04)}
+.seg{display:flex;background:#EAE7DC;border-radius:13px;padding:3px;gap:2px}
+.seg button{flex:1;min-height:40px;border-radius:10px;font:600 13.5px var(--sans);color:var(--ink2)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(25,24,19,.1)}
+.f label{display:block;margin:0 0 7px 2px}
+.f .fi{width:100%;min-height:52px;border-radius:13px;border:1.5px solid var(--line2);background:var(--surface);padding:14px 15px}
+.f .fi:focus{outline:none;border-color:var(--ink)}
+.f .ferr{color:var(--red);font-size:12.5px;margin-top:5px;display:none}
+.switch{position:relative;width:50px;height:30px;border-radius:99px;background:#D8D4C6;flex:none;border:0}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .18s}
+.switch.on{background:var(--green)}
+.switch.on::after{transform:translateX(20px)}
+.trow{display:flex;align-items:center;gap:14px;padding:15px 4px;border-bottom:1px solid var(--line)}
+.trow .tt{font-weight:600;font-size:15px}
+.trow .td{font-size:12.5px;color:var(--ink2);margin-top:1px}
+.tk{background:var(--yel);color:var(--yel-ink);border-radius:18px;padding:18px 18px 0;position:relative;box-shadow:var(--shadow)}
+.tk .tk-ov{color:rgba(36,29,2,.62)}
+.tk .tk-name{font-size:19px;font-weight:700;letter-spacing:-.015em;margin-top:3px}
+.tk .tk-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk-brand{font:700 13px var(--sans);display:flex;align-items:center;gap:7px}
+.tk-brand .dotk{width:9px;height:9px;border-radius:3px;background:var(--yel-ink)}
+.tk-test{font:700 9px var(--mono);letter-spacing:.12em;background:var(--yel-ink);color:var(--yel);padding:3px 7px;border-radius:6px;margin-right:7px}
+.tk .tk-mid{margin-top:14px}
+.tk .bar{width:100%;height:46px;display:block}
+.tk .tk-code{font:600 13px var(--mono);letter-spacing:.22em;text-align:center;margin-top:6px}
+.tk .tk-info{display:flex;position:relative;border-top:2px dashed rgba(36,29,2,.38);margin-top:14px;padding:13px 0 15px}
+.tk .tk-info::before,.tk .tk-info::after{content:'';position:absolute;top:-11px;width:22px;height:22px;border-radius:50%;background:var(--bg)}
+.tk .tk-info::before{left:-29px}
+.tk .tk-info::after{right:-29px}
+.tk .tk-col{flex:1}
+.tk .tk-col+.tk-col{border-left:2px dashed rgba(36,29,2,.38);margin-left:16px;padding-left:16px}
+.tk .tk-v{font:600 20px var(--mono);margin-top:3px}
+.stamp{position:absolute;right:16px;top:34%;transform:rotate(-11deg) scale(2.4);opacity:0;border:3.5px solid var(--green);color:var(--green);font:700 19px var(--mono);letter-spacing:.2em;padding:6px 13px;border-radius:9px;pointer-events:none;z-index:5;mix-blend-mode:multiply}
+.stamp.on{animation:stampIn .55s cubic-bezier(.2,1.35,.45,1) forwards}
+@keyframes stampIn{0%{transform:rotate(-11deg) scale(2.4);opacity:0}55%{opacity:1}72%{transform:rotate(-11deg) scale(.94)}100%{transform:rotate(-11deg) scale(1);opacity:.92}}
+.rcpt{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.rcpt .ln{display:flex;align-items:baseline;gap:10px;padding:6px 0}
+.rcpt .ln .k{font-size:13.5px;flex:none;max-width:62%}
+.rcpt .ln .k small{display:block;color:var(--ink2);font-size:11.5px}
+.rcpt .ln .dots{flex:1;border-bottom:2px dotted var(--line2);transform:translateY(-4px)}
+.rcpt .ln .v{font:500 14px var(--mono);flex:none}
+.rcpt .ln.disc .v,.rcpt .ln.disc .k{color:var(--green)}
+.rcpt .ln.fee .v{color:var(--amber)}
+.rcpt .tot{border-top:1.5px solid var(--ink);margin-top:10px;padding-top:12px;display:flex;align-items:baseline;justify-content:space-between}
+.rcpt .tot .k{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+.rcpt .tot .v{font:600 27px var(--mono);letter-spacing:-.02em}
+canvas.qr-c{width:168px;height:168px;display:block;border-radius:10px;border:1px solid var(--line)}
+.cam{position:absolute;inset:0;background:#101210;overflow:hidden}
+.cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam .cam-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,12,10,.62) 0%,transparent 26%,transparent 58%,rgba(10,12,10,.78) 100%)}
+.cam .vig{position:absolute;inset:0;box-shadow:inset 0 0 130px 40px rgba(0,0,0,.55)}
+.reticle{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(78%,280px);height:172px;z-index:3}
+.reticle i{position:absolute;width:26px;height:26px;border:3px solid #F4F2EC;border-radius:4px}
+.reticle i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0;border-radius:10px 0 0 0}
+.reticle i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0;border-radius:0 10px 0 0}
+.reticle i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0;border-radius:0 0 0 10px}
+.reticle i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0;border-radius:0 0 10px 0}
+.laser{position:absolute;left:8px;right:8px;top:0;height:2.5px;background:var(--yel);border-radius:3px;animation:laser 2.1s cubic-bezier(.45,0,.55,1) infinite alternate}
+.cam.paused .laser{display:none}
+.cam.locked .laser{animation-duration:.38s;background:#3DD68C}
+@keyframes laser{from{top:4px}to{top:calc(100% - 7px)}}
+.scan-ui{position:absolute;inset:0;display:flex;flex-direction:column;z-index:5;padding:16px 20px calc(20px + env(safe-area-inset-bottom));pointer-events:none}
+.scan-ui>*{pointer-events:auto}
+.scan-top{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#F4F2EC}
+.cam .hbtn{background:rgba(24,24,20,.82);border-color:#3B3A32;color:#F4F2EC}
+.scan-mid{flex:1;display:flex;align-items:flex-end;justify-content:center;padding-bottom:26px;color:#F4F2EC;font-size:14.5px;text-align:center}
+.scan-badge{align-self:center;display:flex;align-items:center;gap:8px;background:#0E5B3A;color:#fff;font:600 13px var(--mono);padding:9px 15px;border-radius:99px;opacity:0;transform:translateY(12px);transition:all .25s}
+.scan-badge.on{opacity:1;transform:none}
+.scan-acts{display:flex;gap:10px}
+.scan-acts .btn-o{background:rgba(24,24,20,.82);border-color:#3B3A32;color:#F4F2EC;min-height:48px;font-size:13.5px}
+.scan-note{display:flex;align-items:center;gap:8px;font:600 11px var(--mono);color:#8C8879;letter-spacing:.06em}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--yel);animation:pulse 1.1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.steps{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.step{display:flex;align-items:center;gap:14px;padding:15px 4px;border-bottom:1px solid var(--line);opacity:.35}
+.step.on{opacity:1}
+.step .sic{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line2);display:grid;place-items:center;flex:none;color:transparent}
+.step.done .sic{background:var(--green);border-color:var(--green);color:#fff}
+.step.fail .sic{background:var(--red);border-color:var(--red);color:#fff}
+.step .sic .spin{width:16px;height:16px;border:2px solid var(--line2);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite}
+.step .sic svg{width:16px;height:16px}
+.step .st{font-weight:600}
+.step .sd{font:500 11.5px var(--mono);color:var(--ink2);margin-top:1px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pm{display:flex;align-items:center;gap:14px;padding:16px 14px;border:1.5px solid var(--line);border-radius:15px;background:var(--surface);margin-bottom:10px;width:100%;text-align:left}
+.pm.sel{border-color:var(--ink);box-shadow:0 0 0 1.5px var(--ink)}
+.pm .pmic{width:42px;height:42px;border-radius:12px;background:#EFEDE4;display:grid;place-items:center;flex:none}
+.pm .pt{font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pm .pd{font-size:12px;color:var(--ink2);margin-top:1px}
+.pm .rad{margin-left:auto;width:22px;height:22px;border-radius:50%;border:2px solid var(--line2);flex:none;display:grid;place-items:center}
+.pm.sel .rad{border-color:var(--green)}
+.pm.sel .rad::after{content:'';width:11px;height:11px;border-radius:50%;background:var(--green)}
+.pm.lock{opacity:.55}
+.paybar{position:sticky;bottom:0;margin-top:auto;background:var(--bg);border-top:1px solid var(--line);padding:14px 20px calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:14px}
+.paybar .pval{font:600 20px var(--mono)}
+.paybar .btn{flex:1;min-height:54px}
+.pro-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 26px;text-align:center}
+.bigspin{width:64px;height:64px;border:5px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:26px}
+.okmark{width:96px;height:96px;border-radius:50%;background:var(--green-soft);display:grid;place-items:center;margin:0 auto 22px}
+.okmark svg{width:46px;height:46px}
+.tabbar{flex:none;display:flex;background:rgba(251,250,246,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:8px 8px calc(10px + env(safe-area-inset-bottom));gap:2px}
+.phone.no-tabs .tabbar{display:none}
+.tbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;color:var(--ink3)}
+.tbtn span{font:600 10px var(--mono)}
+.tbtn.on{color:var(--ink)}
+.tbtn .tb-ic{width:44px;height:28px;display:grid;place-items:center;border-radius:99px}
+.tbtn.on .tb-ic{background:#E7E4D8}
+.tbtn.scanb .tb-ic{width:46px;height:34px;background:var(--green);color:#fff;border-radius:99px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.kpi{padding:18px 18px 15px;border-bottom:1px solid var(--line)}
+.kpi:nth-child(odd){border-right:1px solid var(--line)}
+.kpi:nth-last-child(-n+2){border-bottom:0}
+.kpi .kv{font:600 25px var(--mono);letter-spacing:-.03em;margin-top:6px}
+.kpi .kd{font:500 11.5px var(--mono);color:var(--ink2);margin-top:4px}
+.txn{display:flex;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid var(--line)}
+.txn .tc{font:600 12.5px var(--mono)}
+.txn .td{font-size:12px;color:var(--ink2);margin-top:1px}
+.txn .tv{margin-left:auto;text-align:right}
+.txn .tv .v{font:600 14px var(--mono)}
+.mg{width:42px;height:42px;border-radius:13px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:600 14px var(--mono);flex:none}
+.mg.lt{background:#EAE7DC;color:var(--ink)}
+canvas.chart{width:100%;height:150px;display:block}
+#sheet-root{position:absolute;inset:0;z-index:80;display:none}
+#sheet-root.on{display:block}
+.veil{position:absolute;inset:0;background:rgba(20,19,16,.5)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-radius:26px 26px 0 0;padding:12px 20px calc(22px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.9,.3,1);max-height:82%;overflow-y:auto}
+#sheet-root.on .sheet{transform:none}
+.grip{width:40px;height:4px;border-radius:99px;background:var(--line2);margin:4px auto 16px}
+#toast-root{position:absolute;top:14px;left:0;right:0;z-index:99;display:flex;justify-content:center;pointer-events:none}
+.toast{display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--bg);font:600 13.5px var(--sans);padding:13px 18px;border-radius:99px;box-shadow:0 12px 30px rgba(0,0,0,.35);opacity:0;transform:translateY(-16px);transition:all .25s;max-width:86%}
+.toast svg{width:17px;height:17px;color:#6FCF97}
+#toast-root.on .toast{opacity:1;transform:none}
+details.faq{border-bottom:1px solid var(--line)}
+details.faq summary{list-style:none;display:flex;align-items:center;gap:12px;padding:16px 2px;font-weight:600;cursor:pointer}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary svg{margin-left:auto;transition:transform .2s;color:var(--ink3)}
+details.faq[open] summary svg{transform:rotate(180deg)}
+details.faq .fa{padding:0 2px 18px;color:var(--ink2);font-size:14px}
+.strow{display:flex;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.45;align-items:flex-start}
+.strow:last-child{border-bottom:0}
+.strow b{display:block}
+.sti{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none;margin-top:1px}
+.sti svg{width:13px;height:13px}
+.sti.ok{background:var(--green-soft);color:var(--green)}
+.sti.test{background:var(--amber-soft);color:var(--amber)}
+.sti.todo{background:#EFEDE4;color:var(--ink3)}
+@media (max-width:900px){ .stage{padding:0;gap:0} .stage-info{display:none} .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;border:0;box-shadow:none} }
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="stage-info">
+    <div class="wordmark"><span class="wt"></span><b>ParkPay</b></div>
+    <h1>App + backend + banco de dados, <em>rodando de verdade</em>.</h1>
+    <p>Este app consome a API deste servidor — câmera liberada, dados no SQLite, pagamentos confirmados só pelo servidor.</p>
+    <div class="lbl">Tickets de teste para experimentar</div>
+    <div class="demo-list" id="demo-list"></div>
+    <div class="stage-actions">
+      <button class="sbtn p" onclick="A.demoPartner()">Abrir portal do parceiro</button>
+    </div>
+    <p class="stage-note">servidor ativo · ambiente de testes · dados fictícios</p>
+  </aside>
+  <div class="phone" id="phone">
+    <div class="p-notch"></div>
+    <div class="statusbar">
+      <span id="sb-time">9:41</span>
+      <span class="sbr">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" width="3" height="12" rx="1"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="3" stroke="currentColor" stroke-width="1.4"/><rect x="3" y="3" width="14" height="6" rx="1.5" fill="currentColor"/></svg>
+      </span>
+    </div>
+    <div class="envbar" id="envbar">Ambiente de testes — dados fictícios</div>
+    <div id="view"></div>
+    <nav class="tabbar" id="tb-user"></nav>
+    <nav class="tabbar" id="tb-partner" style="display:none"></nav>
+    <div id="sheet-root"></div>
+    <div id="toast-root"></div>
+  </div>
+</div>
+<script>
+'use strict';
+/* ParkPay · frontend — cliente puro da API v1 (mesma origem do backend). */
+const $ = s => document.querySelector(s);
+const fmtBRL = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const pad2 = n => String(n).padStart(2,'0');
+const fmtDur = m => { const h=Math.floor(m/60); return h>0 ? `${h}h ${pad2(m%60)}min` : `${m} min`; };
+const fmtTime = ts => new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const fmtDay = ts => { const d=new Date(ts),n=new Date(),a=new Date(d.getFullYear(),d.getMonth(),d.getDate()),b=new Date(n.getFullYear(),n.getMonth(),n.getDate()),df=Math.round((b-a)/864e5);
+  return df===0?'Hoje':df===1?'Ontem':d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}); };
+const fmtMonth = ts => new Date(ts).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+const hash = s => { let h=2166136261; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);} return h>>>0; };
+const mulberry32 = a => () => { a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+const rid = (n=4) => Array.from({length:n},()=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*31)]).join('');
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const wait = ms => new Promise(r=>setTimeout(r,ms));
+const vibrate = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+function copyText(txt,msg){ const done=()=>toast(msg||'Copiado','copy');
+  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(done,done); else done(); }
+const I = {
+  'arrow-left':'<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>','arrow-right':'<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  'chevron-right':'<path d="m9 18 6-6-6-6"/>','chevron-down':'<path d="m6 9 6 6 6-6"/>',
+  'x':'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>','check':'<path d="M20 6 9 17l-5-5"/>',
+  'plus':'<path d="M12 5v14M5 12h14"/>','clock':'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  'map-pin':'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  'credit-card':'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  'qr':'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z"/>',
+  'wallet':'<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>',
+  'receipt':'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+  'user':'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  'help':'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.1-3 4"/><path d="M12 17h.01"/>',
+  'shield-check':'<path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10Z"/><path d="m9 11.5 2 2 4-4.5"/>',
+  'lock':'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  'copy':'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  'share':'<circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="m8.7 10.7 6.6-3.4M8.7 13.3l6.6 3.4"/>',
+  'ticket':'<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 11v2M13 17v2"/>',
+  'scan':'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/>',
+  'camera-off':'<path d="m2 2 20 20"/><path d="M7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3h-5L8 5.5"/><circle cx="12" cy="13" r="3"/>',
+  'building':'<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21v-4h6v4"/>',
+  'chart':'<path d="M3 3v18h18"/><path d="M7 17v-4M12 17V7M17 17v-9"/>',
+  'link':'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+  'search':'<circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/>',
+  'log-out':'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+  'download':'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+  'refresh':'<path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/>',
+  'zap':'<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/>',
+  'info':'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  'alert':'<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/>',
+  'send':'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  'banknote':'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
+  'timer':'<path d="M10 2h4"/><circle cx="12" cy="14" r="8"/><path d="M12 14v-4"/>',
+  'home':'<path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M9 21v-7h6v7"/>',
+  'server':'<rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/>',
+  'plug':'<path d="M9 7V2M15 7V2"/><path d="M6 7h12v4a6 6 0 0 1-12 0V7Z"/><path d="M12 17v5"/>',
+  'flask':'<path d="M9 2h6M10 2v6L4.5 18a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 8V2"/><path d="M7 14h10"/>',
+  'video':'<path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
+  'edit':'<path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>'
+};
+const ic = (n,c='') => `<svg class="ic ${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I[n]||''}</svg>`;
+const App = { mode:'user', user:null, tok:null, partner:null, ptok:null };
+let STATUS = null;
+const UI = { paySel:'pix', histSeg:'pay', filter:'all', draft:null, methods:null, pixPayload:null };
+const Idem = { keys:{}, for(s){ return this.keys[s] || (this.keys[s]='idem_'+rid(10).toLowerCase()); } };
+async function api(metodo, caminho, corpo, op={}){
+  const escopo = op.scope || App.mode;
+  const tok = escopo==='partner' ? App.ptok : App.tok;
+  let r;
+  try{
+    r = await fetch(caminho, { method:metodo,
+      headers: Object.assign({'Content-Type':'application/json'},
+        tok? {Authorization:'Bearer '+tok} : {},
+        op.idem? {'Idempotency-Key':op.idem} : {}),
+      body: corpo!==undefined ? JSON.stringify(corpo) : undefined });
+  }catch(e){ throw {code:'network', message:'Sem conexão com o servidor.'}; }
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw {code:(d&&d.code)||('http_'+r.status), message:d&&d.message, status:r.status};
+  return d;
+}
+const ERROS = { rate_limited:'Muitas tentativas — aguarde um instante.', invalid_credentials:'E-mail ou senha incorretos.',
+  email_taken:'Este e-mail já tem conta.', invalid_data:'Verifique os dados informados.',
+  insufficient_funds:'Saldo insuficiente na wallet.', quote_expired:'Cotação expirada — recarregando valores…',
+  unauthorized:'Sessão expirada — entre novamente.', forbidden:'Sem permissão para esta operação.',
+  network:'Sem conexão com o servidor.', not_found:'Registro não encontrado.',
+  invalid_card:'Cartão inválido.', psp_error:'Falha no provedor de pagamento.' };
+const erro = e => toast(ERROS[e&&e.code]||(e&&e.message)||'Erro inesperado.','alert');
+async function seguro(fn){ try{ return await fn(); }catch(e){ erro(e); return null; } }
+function toast(msg, icn='check'){
+  const r=$('#toast-root');
+  r.innerHTML=`<div class="toast">${ic(icn)}<span>${msg}</span></div>`;
+  requestAnimationFrame(()=>r.classList.add('on'));
+  setTimeout(()=>{ r.classList.remove('on'); setTimeout(()=>r.innerHTML='',260); },2400);
+}
+function sheet(html){
+  const r=$('#sheet-root');
+  r.innerHTML=`<div class="veil" onclick="A.closeSheet()"></div><div class="sheet"><div class="grip"></div>${html}</div>`;
+  requestAnimationFrame(()=>r.classList.add('on'));
+}
+function crash(msg){
+  try{
+    $('#view').innerHTML=`<div class="page"><div class="pad" style="padding-top:46px"><div class="pro-wrap">
+      <div class="okmark" style="background:var(--red-soft);width:84px;height:84px">${ic('alert')}</div>
+      <h2 style="font-size:21px">O app parou por um erro</h2>
+      <p class="muted mono" style="font-size:12px;margin-top:10px;word-break:break-word;max-width:300px">${esc(String(msg)).slice(0,300)}</p>
+      <button class="btn btn-d" style="margin-top:20px;max-width:280px" onclick="location.reload()">${ic('refresh')} Reiniciar o app</button>
+    </div></div></div>`;
+  }catch(e){}
+}
+window.addEventListener('error', e=>{ if(e&&e.message) crash(e.message); });
+const SCREENS = {};
+let stack = [{id:'welcome',params:{}}];
+const TMR = [];
+const clearT = () => { TMR.forEach(i=>{clearInterval(i);clearTimeout(i);}); TMR.length=0; };
+const every = (fn,ms)=>{ const i=setInterval(fn,ms); TMR.push(i); return i; };
+const after = (fn,ms)=>{ const i=setTimeout(fn,ms); TMR.push(i); return i; };
+const cur = () => $('#view').lastElementChild;
+function render(id, params={}, dir='fwd'){
+  clearT(); A.closeSheet();
+  try{ Scanner.stop(); }catch(e){}
+  const def = SCREENS[id]; if(!def){ crash('Tela desconhecida: '+id); return; }
+  const pg = document.createElement('div');
+  pg.className = 'page ' + (dir==='back'?'in-back':'in-fwd');
+  try{ pg.innerHTML = def.render(params||{}); }
+  catch(e){ pg.innerHTML = `<div class="pad" style="padding-top:40px"><div class="pro-wrap"><h2>Erro ao desenhar a tela</h2><p class="mono muted" style="font-size:12px;margin-top:8px">${esc(String(e.message||e)).slice(0,200)}</p></div></div>`; }
+  const view = $('#view');
+  [...view.querySelectorAll('.page')].forEach(old=>{ old.style.transition='opacity .24s'; old.style.opacity='0'; setTimeout(()=>old.remove(),260); });
+  view.appendChild(pg);
+  try{ def.mount && def.mount(pg, params||{}); }
+  catch(e){ crash(e&&e.message||String(e)); return; }
+  paintCodes(pg);
+  pg.scrollTop = 0;
+  $('#phone').classList.toggle('sb-dark', !!def.dark);
+  $('#phone').classList.toggle('no-tabs', !!def.immersive);
+  setTabUI(id);
+}
+const go = (id,p)=>{ stack.push({id,params:p}); render(id,p,'fwd'); };
+const back = ()=>{ if(stack.length>1){ stack.pop(); const s=stack[stack.length-1]; render(s.id,s.params,'back'); } };
+const replace = (id,p)=>{ stack[stack.length-1]={id,params:p}; render(id,p,'fwd'); };
+const resetTo = (id,p={})=>{ stack=[{id,params:p}]; render(id,p,'fwd'); };
+const SCAN_IDS = new Set(['scan','lookup','nocompat','ticket','pay','pix','card','processing','success']);
+function setTabUI(id){
+  const bt = (b)=> b.special
+    ? `<button class="tbtn scanb ${b.on?'on':''}" onclick="${b.click}"><span class="tb-ic">${ic(b.icon)}</span><span>${b.label}</span></button>`
+    : `<button class="tbtn ${b.on?'on':''}" onclick="${b.click}"><span class="tb-ic">${ic(b.icon)}</span><span>${b.label}</span></button>`;
+  if(App.mode==='user'){
+    $('#tb-user').innerHTML = [
+      {icon:'home',label:'Início',on:id==='home',click:"A.tab('home')"},
+      {icon:'scan',label:'Escanear',special:true,on:SCAN_IDS.has(id),click:"A.tab('scan')"},
+      {icon:'receipt',label:'Pagamentos',on:id==='payments',click:"A.tab('payments')"},
+      {icon:'user',label:'Conta',on:id==='account',click:"A.tab('account')"},
+    ].map(bt).join('');
+    $('#tb-partner').innerHTML='';
+  } else {
+    $('#tb-partner').innerHTML = [
+      {icon:'chart',label:'Painel',on:id==='phome',click:"A.ptab('phome')"},
+      {icon:'ticket',label:'Tickets',on:id==='ptickets',click:"A.ptab('ptickets')"},
+      {icon:'banknote',label:'Transações',on:id==='ptxns',click:"A.ptab('ptxns')"},
+      {icon:'link',label:'Integrações',on:id==='pinteg',click:"A.ptab('pinteg')"},
+    ].map(bt).join('');
+    $('#tb-user').innerHTML='';
+  }
+  $('#tb-user').style.display = App.mode==='user'?'':'none';
+  $('#tb-partner').style.display = App.mode==='partner'?'':'none';
+}
+const countdown = (el, ts, onEnd) => { const iv=every(()=>{ const d=Math.max(0,ts-Date.now());
+  el.textContent=`${pad2(Math.floor(d/6e4))}:${pad2(Math.floor(d%6e4/1e3))}`;
+  if(d<=0){ clearInterval(iv); onEnd&&onEnd(); } },1000); return iv; };
+const skel = () => `<div class="pro-wrap"><div class="bigspin"></div><p class="muted mono" style="font-size:12px">consultando o servidor…</p></div>`;
+function dead(pg,msg){
+  pg.innerHTML=`<div class="pad"><div class="pro-wrap">
+    <div class="okmark" style="background:var(--red-soft);width:80px;height:80px">${ic('alert')}</div>
+    <p style="font-weight:600">${msg}</p>
+    <button class="btn btn-o" style="margin-top:18px;max-width:220px" onclick="A.back()">Voltar</button></div></div>`;
+}
+const hdr = (t, sub, right='') => `<div class="hdr">
+  <button class="hbtn" onclick="A.back()" aria-label="Voltar">${ic('arrow-left')}</button>
+  <div class="grow"><div class="h1">${t}</div>${sub?`<div class="hsub">${sub}</div>`:''}</div>${right}</div>`;
+const rowHTML = o => `<button class="lrow" ${o.click?`onclick="${o.click}"`:''}>
+  <span class="icw">${ic(o.icn)}</span>
+  <span class="grow"><span class="lt">${o.t}</span>${o.d?`<span class="ld">${o.d}</span>`:''}</span>
+  ${o.badge||''} ${ic('chevron-right','chev')}</button>`;
+const ticketCard = ({code,parkingName,entryAt,mins,paid=false,isTest=true}) => `
+  <div class="tk">
+    <div class="tk-head">
+      <div><div class="ov tk-ov">Estacionamento</div><div class="tk-name">${parkingName}</div></div>
+      <div class="tk-brand">${isTest?'<span class="tk-test">TESTE</span>':''}<span class="dotk"></span>ParkPay</div>
+    </div>
+    <div class="tk-mid"><canvas class="bar" data-bar="${code}"></canvas><div class="tk-code">${code}</div></div>
+    <div class="tk-info">
+      <div class="tk-col"><div class="ov tk-ov">Entrada</div><div class="tk-v">${fmtDay(entryAt)} · ${fmtTime(entryAt)}</div></div>
+      <div class="tk-col"><div class="ov tk-ov">Permanência</div><div class="tk-v">${fmtDur(mins)}</div></div>
+    </div>
+    ${paid?'<div class="stamp" data-stamp>PAGO</div>':''}
+  </div>`;
+const linesHTML = lines => lines.map(l=>`<div class="ln ${l.disc?'disc':''} ${l.fee?'fee':''}">
+  <span class="k">${l.k}${l.note?`<small>${l.note}</small>`:''}</span><span class="dots"></span>
+  <span class="v">${l.disc?'− ':''}${fmtBRL(l.v)}</span></div>`).join('');
+function drawBarcode(cv, seed){ const w=640,h=120; cv.width=w; cv.height=h;
+  const c=cv.getContext('2d'); c.fillStyle='#241D02'; const r=mulberry32(hash(seed)); let x=0;
+  while(x<w-10){ const bw=2+Math.floor(r()*6), g=2+Math.floor(r()*5); c.fillRect(x,0,bw,h); x+=bw+g; } }
+function drawQR(cv, seed){ const n=25,q=2,t=n+q*2,px=Math.floor(560/t),s=px*t; cv.width=s; cv.height=s;
+  const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,s,s); c.fillStyle='#191813';
+  const r=mulberry32(hash(seed)), m=[];
+  for(let y=0;y<n;y++){ m[y]=[]; for(let x=0;x<n;x++) m[y][x]=r()<.5; }
+  const f=(fx,fy)=>{ for(let y=0;y<7;y++)for(let x=0;x<7;x++){ m[fy+y][fx+x]=Math.max(Math.abs(x-3),Math.abs(y-3))!==1; } };
+  f(0,0); f(n-7,0); f(0,n-7);
+  for(let i=8;i<n-8;i++){ m[6][i]=i%2===0; m[i][6]=i%2===0; }
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++) if(m[y][x]) c.fillRect((x+q)*px,(y+q)*px,px,px); }
+function drawChart(cv, vals, labels){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth||300, H=cv.clientHeight||150;
+  cv.width=W*dpr; cv.height=H*dpr; const c=cv.getContext('2d'); c.scale(dpr,dpr);
+  const max=Math.max(...vals)*1.18, pad=4, base=H-20;
+  const bw=Math.min(22,(W-pad*2)/vals.length*.55), gap=(W-pad*2-bw*vals.length)/Math.max(1,vals.length-1);
+  c.strokeStyle='#E5E2D7'; c.beginPath(); c.moveTo(0,base+.5); c.lineTo(W,base+.5); c.stroke();
+  vals.forEach((v,i)=>{ const x=pad+i*(bw+gap), h=Math.max(3,(base-8)*(v/max)), y=base-h;
+    c.fillStyle = i===vals.length-1 ? '#0E5B3A' : '#191813';
+    c.beginPath(); if(c.roundRect) c.roundRect(x,y,bw,h,4); else c.rect(x,y,bw,h); c.fill();
+    c.fillStyle='#8C8879'; c.font='9px "IBM Plex Mono"'; c.textAlign='center';
+    if(labels[i]) c.fillText(labels[i],x+bw/2,H-6);
+    if(i===vals.length-1){ c.fillStyle='#0E5B3A'; c.font='600 10px "IBM Plex Mono"'; c.fillText(v.toLocaleString('pt-BR'),x+bw/2,y-6); } }); }
+function paintCodes(sc){
+  sc.querySelectorAll('canvas[data-bar]').forEach(cv=>drawBarcode(cv,cv.dataset.bar));
+  sc.querySelectorAll('canvas[data-qr]').forEach(cv=>drawQR(cv,cv.dataset.qr));
+  sc.querySelectorAll('canvas[data-chart]').forEach(cv=>{ try{ drawChart(cv,JSON.parse(cv.dataset.chart),JSON.parse(cv.dataset.labels)); }catch(e){} });
+}
+const Scanner = {
+  stream:null, timer:null, zxCtrl:null, lastCode:'', lastTs:0,
+  async open(video){
+    this.stream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720}}, audio:false});
+    video.srcObject = this.stream;
+    await video.play().catch(()=>{});
+  },
+  async start(video, onCode){
+    if(window.BarcodeDetector){
+      const sup = await window.BarcodeDetector.getSupportedFormats().catch(()=>[]);
+      const fmts = ['qr_code','code_128','code_39','ean_13','ean_8','itf','codabar','data_matrix','pdf417'].filter(f=>sup.includes(f));
+      const det = new window.BarcodeDetector(fmts.length?{formats:fmts}:{});
+      const tick = async()=>{ if(!this.stream) return;
+        try{ const cs = await det.detect(video); if(cs.length) this.hit(cs[0].rawValue,onCode); }catch(e){}
+        this.timer = setTimeout(tick,170); };
+      tick();
+    } else {
+      await this.loadZXing();
+      const rd = new window.ZXing.BrowserMultiFormatReader();
+      if(rd.decodeFromStream) await rd.decodeFromStream(this.stream, video, r=>{ if(r) this.hit(r.getText(),onCode); });
+      else if(rd.decodeFromVideoElement) await rd.decodeFromVideoElement(video, r=>{ if(r) this.hit(r.getText(),onCode); });
+      else throw new Error('zxing_api');
+      this.zxCtrl = rd;
+    }
+  },
+  hit(raw,onCode){ const code=(raw||'').trim(), t=Date.now();
+    if(!code || (code===this.lastCode && t-this.lastTs<3000)) return;
+    this.lastCode=code; this.lastTs=t; onCode(code); },
+  async loadZXing(){ if(window.ZXing) return;
+    await new Promise((res,rej)=>{ const s=document.createElement('script');
+      s.src='https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js';
+      s.onload=res; s.onerror=rej; document.head.appendChild(s); }); },
+  hasTorch(){ try{ const t=this.stream&&this.stream.getVideoTracks()[0]; const c=t&&t.getCapabilities&&t.getCapabilities(); return !!(c&&c.torch); }catch(e){ return false; } },
+  torch(on){ try{ this.stream.getVideoTracks()[0].applyConstraints({advanced:[{torch:on}]}); }catch(e){} },
+  stop(){ clearTimeout(this.timer); try{ this.zxCtrl&&this.zxCtrl.reset(); }catch(e){}
+    this.zxCtrl=null; if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); } this.stream=null; }
+};
+/* ================= TELAS · USUÁRIO ================= */
+SCREENS.welcome = { immersive:true, render:()=>`
+  <div class="pad" style="flex:1;display:flex;flex-direction:column;padding-top:52px">
+    <div class="tk" style="width:86%;margin:6px auto 32px;transform:rotate(-3.5deg)">
+      <div class="tk-head"><div><div class="ov tk-ov">Bem-vindo ao</div><div class="tk-name" style="font-size:22px">ParkPay</div></div>
+      <div class="tk-brand"><span class="tk-test">TESTE</span><span class="dotk"></span>Sem fila</div></div>
+      <div class="tk-mid"><canvas class="bar" data-bar="WELCOME"></canvas></div>
+      <div class="tk-info"><div class="tk-col"><div class="ov tk-ov">Entrada</div><div class="tk-v">Agora</div></div>
+      <div class="tk-col"><div class="ov tk-ov">Saída</div><div class="tk-v">Direta</div></div></div>
+    </div>
+    <h1 style="font-size:30px;line-height:1.08;letter-spacing:-.02em">Pague seu estacionamento <span style="color:var(--green)">sem fila</span>.</h1>
+    <p class="muted" style="margin-top:12px;font-size:15.5px">Escaneie o ticket com a câmera, pague pelo celular e vá direto para a saída.</p>
+    <div style="margin-top:auto;padding-top:26px">
+      <button class="btn btn-p" onclick="A.demoLogin()">Começar agora ${ic('arrow-right')}</button>
+      <button class="btn btn-o" style="margin-top:10px" onclick="A.loginSheet()">${ic('lock')} Entrar com minha conta</button>
+      <button class="btn btn-o" style="margin-top:10px" onclick="A.registerSheet()">${ic('plus')} Criar conta</button>
+      <button class="lrow" style="justify-content:center;gap:10px;color:var(--ink2);padding-top:18px" onclick="A.enterPartner()">
+        ${ic('building')} <span class="lt" style="font-weight:500;font-size:14px">É um estacionamento? Portal do parceiro</span>
+      </button>
+      <p class="mono" style="text-align:center;font-size:10.5px;color:var(--ink3);margin-top:14px">
+        servidor: ${esc(location.origin)} · ambiente de TESTES<br>conta demo: ana.ribeiro@email.com · demo1234
+      </p>
+    </div>
+  </div>`};
+SCREENS.home = { render:()=>{ const u=App.user||{name:''};
+  const hi=(h=>h<12?'Bom dia':h<18?'Boa tarde':'Boa noite')(new Date().getHours());
+  return `<div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 0 18px">
+      <div class="mg" style="border-radius:50%">${(u.name||' ').split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
+      <div><div class="ov">${hi}</div><div style="font-size:19px;font-weight:700">${esc(u.name)}</div></div>
+      <button class="hbtn" style="margin-left:auto" onclick="A.go('help')">${ic('help')}</button>
+    </div>
+    <h1 style="font-size:27px;line-height:1.08;letter-spacing:-.025em">Pague seu estacionamento <span style="color:var(--green)">sem fila</span>.</h1>
+    <p class="muted" style="margin:10px 0 18px;font-size:15px">Escaneie o ticket, pague pelo celular e vá direto para a saída.</p>
+    <button class="btn btn-p" style="min-height:62px;font-size:17.5px" onclick="A.tab('scan')">${ic('video')} Escanear ticket</button>
+    <div class="mono" style="display:flex;justify-content:center;gap:6px;align-items:center;margin-top:12px;font-size:11px;color:var(--ink3)">${ic('timer')} Leva menos de 1 minuto</div>
+    <div style="margin-top:30px">
+      ${rowHTML({icn:'receipt',t:'Meus pagamentos',d:'Histórico e comprovantes',click:"A.tab('payments')",badge:'<span class="badge-n" id="h-pc">…</span>'})}
+      ${rowHTML({icn:'map-pin',t:'Estacionamentos compatíveis',d:'<span id="h-pk">…</span> parceiros integrados',click:"A.go('parkings')"})}
+      ${rowHTML({icn:'flask',t:'Ambiente e integrações',d:'o que é real, o que é teste, o que falta',click:"A.go('env')"})}
+      ${rowHTML({icn:'help',t:'Ajuda',d:'Dúvidas frequentes',click:"A.go('help')"})}
+    </div>
+    <div style="margin-top:24px;border-top:1px solid var(--line);padding-top:8px">
+      ${rowHTML({icn:'building',t:'Portal do Parceiro',d:'área para estacionamentos',click:"A.enterPartner()"})}
+      <button class="lrow" style="color:var(--red)" onclick="A.logout()"><span class="icw" style="color:var(--red)">${ic('log-out')}</span><span class="lt" style="font-weight:500">Sair da conta</span></button>
+    </div>
+  </div>`},
+  async mount(pg){
+    const p=await seguro(()=>api('GET','/v1/parkings'));
+    if(p){ const el=pg.querySelector('#h-pk'); if(el) el.textContent=p.filter(x=>x.integration==='connected').length; }
+    const h=await seguro(()=>api('GET','/v1/payments'));
+    if(h){ const el=pg.querySelector('#h-pc'); if(el) el.textContent=h.length; }
+  }};
+SCREENS.scan = { immersive:true, dark:true, render:()=>`
+  <div class="cam" id="cam">
+    <video id="camv" playsinline muted autoplay></video>
+    <div class="cam-shade"></div>
+    <div class="reticle"><i></i><i></i><i></i><i></i><div class="laser"></div></div>
+    <div class="vig"></div>
+    <div class="pad" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#F4F2EC;z-index:4" id="camfb"></div>
+  </div>
+  <div class="scan-ui">
+    <div class="scan-top">
+      <button class="hbtn" onclick="A.back()">${ic('x')}</button>
+      <span class="chip" style="border-color:#4A483E;color:#C9C6BA;background:rgba(20,20,16,.7)">${ic('shield-check')} Leitura local</span>
+      <button class="hbtn" id="torchbtn" style="display:none" onclick="A.toggleTorch()">${ic('zap')}</button>
+    </div>
+    <div class="scan-mid"><div>
+      <div id="scan-status">Iniciando câmera…</div>
+      <div class="scan-note" style="justify-content:center;margin-top:10px" id="scan-note"><span class="pulse-dot"></span>QR Code · Code 128 · EAN</div>
+    </div></div>
+    <div class="scan-badge" id="scan-badge">${ic('check')} Código identificado</div>
+    <div class="scan-acts">
+      <button class="btn btn-o btn-sm" onclick="A.manualSheet()">${ic('edit')} Digitar código</button>
+      ${STATUS&&STATUS.env==='test'?`<button class="btn btn-o btn-sm" onclick="A.demoSheet()">${ic('flask')} Tickets de teste</button>`:''}
+    </div>
+  </div>`,
+  mount(pg){ A.initCamera(pg); }};
+SCREENS.lookup = { immersive:true, render:p=>`
+  <div class="pad" style="padding-top:26px">
+    ${hdr('Consultando ticket','',`<span class="chip">${esc(p.code)}</span>`)}
+    <div class="steps" id="steps">
+      <div class="step"><span class="sic"><span class="spin"></span></span><div><div class="st">Lendo código do ticket</div><div class="sd mono">${esc(p.code)}</div></div></div>
+      <div class="step"><span class="sic"><span class="spin"></span></span><div><div class="st">Consultando o backend</div><div class="sd mono">POST /v1/tickets/lookup</div></div></div>
+      <div class="step"><span class="sic"><span class="spin"></span></span><div><div class="st">Cotação de valores no servidor</div><div class="sd mono">o app nunca calcula tarifas</div></div></div>
+    </div>
+  </div>`,
+  mount(pg,p){
+    const st=[...pg.querySelectorAll('.step')];
+    const set=(i,c)=>{ st[i].classList.add('on'); st[i].querySelector('.sic').innerHTML = c==='fail'?ic('x'):c==='done'?ic('check'):'<span class="spin"></span>'; };
+    set(0,'run');
+    (async()=>{
+      const r=await seguro(()=>api('POST','/v1/tickets/lookup',{code:p.code}));
+      if(!r){ set(0,'fail'); after(back,900); return; }
+      set(0,'done'); set(1,'run');
+      if(r.status==='not_found'){ set(1,'fail'); toast('Ticket não localizado','alert'); after(back,850); return; }
+      if(r.status==='not_integrated'){ set(1,'fail'); after(()=>go('nocompat',{parkingName:r.parkingName}),550); return; }
+      set(1,'done'); set(2,'run');
+      const q=await seguro(()=>api('GET','/v1/tickets/'+r.ticketId+'/quote'));
+      if(!q){ set(2,'fail'); after(back,900); return; }
+      set(2,'done');
+      after(()=>replace('ticket',{ticketId:r.ticketId}),380);
+    })();
+  }};
+SCREENS.nocompat = { immersive:true, render:p=>`
+  <div class="pad" style="flex:1;display:flex;flex-direction:column">
+    ${hdr('Estacionamento não compatível')}
+    <div class="pro-wrap" style="flex:1;justify-content:flex-start;padding-top:14px">
+      <div class="okmark" style="background:var(--amber-soft)">${ic('camera-off')}</div>
+      <h2 style="font-size:22px;line-height:1.15">Este estacionamento ainda não é compatível</h2>
+      <p class="muted" style="margin-top:10px;max-width:300px"><b>${esc(p.parkingName||'')}</b> não possui conector configurado. Não simulamos integrações — quando ele se conectar, os tickets dele passam a funcionar automaticamente.</p>
+      <div style="width:100%;margin-top:24px">
+        <button class="btn btn-d" onclick="A.notifyPartner('${esc(p.parkingName||'')}')">${ic('send')} Avisar o ParkPay sobre ele</button>
+        <button class="btn btn-o" style="margin-top:10px" onclick="A.go('parkings')">${ic('map-pin')} Ver compatíveis</button>
+        <button class="btn btn-o" style="margin-top:10px" onclick="A.tab('scan')">${ic('video')} Voltar ao leitor</button>
+      </div>
+    </div>
+  </div>`};
+SCREENS.ticket = { immersive:true, render:()=>`<div class="pad" id="tk-wrap" style="display:flex;flex-direction:column;min-height:100%">${skel()}</div>`,
+  async mount(pg,p){
+    const d=await seguro(()=>api('GET','/v1/tickets/'+p.ticketId+'/quote'));
+    if(!d){ dead(pg,'Não foi possível consultar este ticket.'); return; }
+    if(d.status==='paid'){
+      pg.innerHTML=`${hdr('Ticket já pago', d.parking.name)}
+        ${ticketCard({code:d.ticket.code,parkingName:d.parking.name,entryAt:d.receipt.entryAt,mins:0,paid:true})}
+        <div class="banner b-ok" style="margin-top:16px">${ic('shield-check')}<div>Este ticket <b>já foi pago</b> — o servidor bloqueia nova cobrança.</div></div>
+        <button class="btn btn-d" style="margin-top:16px" onclick="A.go('receipt',{paymentId:'${d.receipt.paymentId}'})">${ic('receipt')} Ver comprovante</button>`;
+      paintCodes(pg); pg.querySelector('[data-stamp]').classList.add('on'); return;
+    }
+    const {ticket,parking,quote:q}=d;
+    const draw=(qq)=>{
+      pg.innerHTML=`${hdr('Conferir valores', parking.addr.split('—')[1]||'')}
+      ${ticketCard({code:ticket.code,parkingName:parking.name,entryAt:ticket.entryAt,mins:qq.mins})}
+      <div class="rcpt" style="margin-top:16px">
+        <div class="ov" style="margin-bottom:6px">Resumo · calculado no servidor</div>
+        ${linesHTML(qq.lines)}
+        <div class="tot"><span class="k">Total a pagar</span><span class="v" id="tk-total">${fmtBRL(qq.total)}</span></div>
+      </div>
+      ${qq.total<=0?`
+        <div class="banner b-ok" style="margin-top:14px">${ic('zap')}<div>Permanência dentro da tolerância. <b>Nada a pagar</b>.</div></div>
+        <div style="margin-top:auto;padding-top:20px"><button class="btn btn-p" onclick="A.freeExit('${ticket.id}')">${ic('check')} Liberar saída gratuitamente</button></div>`
+      :`<p class="mono" style="font-size:10.5px;color:var(--ink3);text-align:center;margin-top:10px">cotação ${qq.quoteId} · atualizada ${fmtTime(qq.exitAt)}</p>
+        <div style="margin-top:auto;padding-top:20px"><button class="btn btn-p" onclick="A.go('pay',{ticketId:'${ticket.id}'})">Continuar para pagamento ${ic('arrow-right')}</button></div>`}`;
+      paintCodes(pg);
+    };
+    draw(q);
+    every(async()=>{ try{ const qq=await api('GET','/v1/tickets/'+p.ticketId+'/quote'); if(qq.status==='ok') draw(qq.quote); }catch(e){} },25000);
+  }};
+SCREENS.pay = { immersive:true, render:()=>`<div class="pad" id="pay-wrap" style="display:flex;flex-direction:column;min-height:100%">${skel()}</div>`,
+  async mount(pg,p){
+    const [q,m]=await Promise.all([seguro(()=>api('GET','/v1/tickets/'+p.ticketId+'/quote')), seguro(()=>api('GET','/v1/methods'))]);
+    if(!q||!m){ dead(pg,'Não foi possível carregar o pagamento.'); return; }
+    if(q.status==='paid'){ toast('Ticket já pago','info'); replace('receipt',{paymentId:q.receipt.paymentId}); return; }
+    UI.methods=m;
+    const {ticket,parking,quote:qq}=q;
+    const met=[ {id:'pix',icn:'qr',t:'Pix',d:'Aprovação imediata · recomendado',on:true,rec:true},
+      {id:'wallet',icn:'wallet',t:'ParkPay Wallet',d:'Saldo: '+fmtBRL(m.wallet),on:m.wallet>=qq.total},
+      ...m.cards.map(c=>({id:'card:'+c.id,icn:'credit-card',t:`${c.brand} •••• ${c.last4}`,d:'token '+c.token,on:true})),
+      {id:'draft',icn:'credit-card',t:UI.draft?`${UI.draft.brand} •••• ${UI.draft.last4}`:'Novo cartão de crédito',d:UI.draft?'uso único — não será salvo':'tokenizado no provedor',on:true},
+      {id:'debit',icn:'banknote',t:'Cartão de débito',d:parking.debit?'Débito online disponível neste local':'Disponível apenas em parceiros selecionados',on:!!parking.debit,lock:!parking.debit} ];
+    pg.innerHTML=`${hdr('Pagamento',`${parking.name} · ${ticket.code}`)}
+    <div class="rcpt" style="padding:14px 18px">
+      <div class="ln"><span class="k">Estacionamento</span><span class="dots"></span><span class="v" style="max-width:52%;text-align:right">${parking.name}</span></div>
+      <div class="ln"><span class="k">Permanência</span><span class="dots"></span><span class="v">${fmtDur(qq.mins)}</span></div>
+      <div class="tot"><span class="k">Total a pagar</span><span class="v">${fmtBRL(qq.total)}</span></div>
+    </div>
+    <div class="ov" style="margin:20px 0 10px">Forma de pagamento</div>
+    <div>${met.map(mm=>`
+      <button class="pm ${UI.paySel===mm.id?'sel':''} ${mm.lock?'lock':''}" data-m="${mm.id}" ${mm.lock?'disabled':''}>
+        <span class="pmic">${ic(mm.icn)}</span>
+        <span class="grow"><span class="pt">${mm.t}${mm.rec?' <span class="chip ok">recomendado</span>':''}${mm.lock?' <span class="chip warn">indisponível</span>':''}${!mm.on&&!mm.lock?' <span class="chip warn">saldo insuficiente</span>':''}</span><span class="pd">${mm.d}</span></span>
+        <span class="rad"></span>
+      </button>`).join('')}</div>
+    <button class="btn btn-o btn-sm" style="margin-top:6px" onclick="A.go('card',{ticketId:'${ticket.id}'})">${ic('plus')} Usar outro cartão</button>
+    <div class="banner b-inf" style="margin-top:14px">${ic('lock')}<div>O valor cobrado é sempre o <b>cálculo do servidor</b> — não pode ser alterado no app.</div></div>
+    <div class="paybar" style="margin-left:-20px;margin-right:-20px">
+      <div><div class="ov">Você paga</div><div class="pval">${fmtBRL(qq.total)}</div></div>
+      <button class="btn btn-p" onclick="A.payContinue('${ticket.id}')">Pagar ${fmtBRL(qq.total)}</button>
+    </div>`;
+    pg.querySelectorAll('.pm:not(.lock)').forEach(b=>b.addEventListener('click',()=>{
+      const id=b.dataset.m;
+      if(id==='draft'&&!UI.draft){ go('card',{ticketId:p.ticketId}); return; }
+      pg.querySelectorAll('.pm').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel'); UI.paySel=id; vibrate(15);
+    }));
+  }};
+SCREENS.card = { immersive:true, render:()=>`
+  <div class="pad" style="display:flex;flex-direction:column;min-height:100%">
+    ${hdr('Novo cartão','crédito · tokenizado no provedor')}
+    <form id="cardf" class="f" novalidate>
+      <label><span class="ov">Número do cartão</span><input class="fi mono" id="cc-num" inputmode="numeric" placeholder="0000 0000 0000 0000"><span class="ferr" id="cc-num-err"></span></label>
+      <label style="margin-top:14px"><span class="ov">Nome impresso</span><input class="fi" id="cc-name" placeholder="Como está no cartão"><span class="ferr" id="cc-name-err"></span></label>
+      <div style="display:flex;gap:12px;margin-top:14px">
+        <label class="grow"><span class="ov">Validade</span><input class="fi mono" id="cc-exp" inputmode="numeric" placeholder="MM/AA"><span class="ferr" id="cc-exp-err"></span></label>
+        <label style="width:110px"><span class="ov">CVV</span><input class="fi mono" id="cc-cvv" type="password" inputmode="numeric" placeholder="•••" maxlength="4"><span class="ferr" id="cc-cvv-err"></span></label>
+      </div>
+      <label style="display:flex;gap:12px;align-items:flex-start;margin-top:16px;cursor:pointer">
+        <input type="checkbox" id="cc-save" style="width:20px;height:20px;margin-top:2px;accent-color:var(--green)">
+        <span style="font-size:13.5px;color:var(--ink2)">Salvar para próximos pagamentos. O número é <b>tokenizado</b> — o ParkPay guarda só o token.</span>
+      </label>
+      <button class="btn btn-d" type="submit" style="margin-top:20px">${ic('lock')} Usar este cartão</button>
+      <p class="mono" style="font-size:10.5px;color:var(--ink3);text-align:center;margin-top:12px">o número nunca é enviado ao servidor ParkPay</p>
+    </form>
+  </div>`,
+  mount(pg){
+    const num=pg.querySelector('#cc-num'),name=pg.querySelector('#cc-name'),exp=pg.querySelector('#cc-exp'),cvv=pg.querySelector('#cc-cvv');
+    const err=(id,msg)=>{ const f=pg.querySelector(id); f.classList.toggle('err',!!msg); pg.querySelector(id+'-err').textContent=msg||''; return !msg; };
+    num.addEventListener('input',()=>{ num.value=num.value.replace(/\D/g,'').slice(0,16).replace(/(\d{4})(?=\d)/g,'$1 '); });
+    exp.addEventListener('input',()=>{ let v=exp.value.replace(/\D/g,'').slice(0,4); if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2); exp.value=v; });
+    cvv.addEventListener('input',()=>{ cvv.value=cvv.value.replace(/\D/g,'').slice(0,4); });
+    pg.querySelector('#cardf').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const d=num.value.replace(/\D/g,'');
+      const brand=/^4/.test(d)?'Visa':/^5/.test(d)?'Mastercard':'Cartão';
+      let ok=true;
+      ok&=err('#cc-num', d.length!==16?'Informe os 16 dígitos':'');
+      if(d.length===16){ let s=0,alt=false; for(let i=d.length-1;i>=0;i--){let x=+d[i]; if(alt){x*=2;if(x>9)x-=9;} s+=x;alt=!alt;} if(s%10!==0){err('#cc-num','Número de cartão inválido');ok=false;} }
+      ok&=err('#cc-name', name.value.trim().length<4?'Informe o nome impresso':'');
+      const m=exp.value.match(/^(\d{2})\/(\d{2})$/);
+      ok&=err('#cc-exp', m&&+m[1]>=1&&+m[1]<=12&&+m[2]>24?'':'Validade inválida');
+      ok&=err('#cc-cvv', cvv.value.length<3?'CVV inválido':'');
+      if(!ok) return;
+      const token='tok_sbx_'+hash(d).toString(16);
+      const label=`${brand} •••• ${d.slice(-4)}`;
+      if(pg.querySelector('#cc-save').checked){
+        const r=await seguro(()=>api('POST','/v1/methods/cards',{token,last4:d.slice(-4),brand,exp:exp.value}));
+        if(!r) return;
+        UI.draft=null; UI.paySel='card:'+r.card.id;
+        toast('Cartão tokenizado com segurança','shield-check');
+      } else {
+        UI.draft={token,brand,last4:d.slice(-4),label}; UI.paySel='draft';
+        toast('Cartão válido — uso único, não será salvo','shield-check');
+      }
+      back();
+    });
+  }};
+SCREENS.pix = { immersive:true, render:()=>`<div class="pad" id="px-wrap" style="display:flex;flex-direction:column;min-height:100%">${skel()}</div>`,
+  async mount(pg,p){
+    const r=await seguro(()=>api('GET','/v1/payments/'+p.intentId));
+    if(!r){ dead(pg,'Não foi possível carregar a cobrança.'); return; }
+    const it=r.intent; UI.pixPayload=it.pix&&it.pix.payload;
+    pg.innerHTML=`${hdr('Pagar com Pix','expira em <span id="px-t">05:00</span>')}
+    <div style="display:flex;flex-direction:column;align-items:center;padding-top:8px">
+      ${it.pix&&it.pix.qrBase64
+        ? `<img src="data:image/png;base64,${it.pix.qrBase64}" width="168" height="168" alt="QR Pix" style="border-radius:10px;border:1px solid var(--line)">`
+        : `<canvas class="qr-c" data-qr="${it.id}"></canvas>`}
+      <button class="btn btn-o btn-sm" style="margin-top:14px;max-width:260px;font-size:13px" onclick="A.copyPix()">${ic('copy')} Copiar código Pix</button>
+    </div>
+    <div class="rcpt" style="margin-top:18px">
+      <div class="ln"><span class="k">Estacionamento</span><span class="dots"></span><span class="v">${it.parkingName}</span></div>
+      <div class="ln"><span class="k">Ticket</span><span class="dots"></span><span class="v">${it.ticketCode}</span></div>
+      <div class="tot"><span class="k">Valor</span><span class="v">${fmtBRL(it.amount)}</span></div>
+    </div>
+    <div class="mono" style="display:flex;align-items:center;justify-content:center;gap:9px;margin-top:16px">
+      <span class="pulse-dot" style="background:var(--green)"></span>
+      <span style="font-size:12px;color:var(--ink2)" id="px-status">Aguardando confirmação do provedor…</span>
+    </div>
+    <div class="banner b-inf" style="margin-top:12px">${ic('info')}<div>O status muda para pago <b>apenas quando o servidor confirma</b>${STATUS&&STATUS.gateway&&STATUS.gateway.status==='simulado'?' (simulação, sem PSP configurado)':''}. O app nunca decide sozinho.</div></div>
+    <div class="paybar" style="margin-left:-20px;margin-right:-20px">
+      <div><div class="ov">Valor</div><div class="pval">${fmtBRL(it.amount)}</div></div>
+      <button class="btn btn-o" onclick="A.pixCheck('${it.id}')">${ic('refresh')} Já paguei — conferir</button>
+    </div>`;
+    paintCodes(pg);
+    if(it.pix) countdown(pg.querySelector('#px-t'), it.pix.expiresAt, ()=>{ const e=pg.querySelector('#px-t'); if(e) e.textContent='expirado'; });
+    every(async()=>{ try{ const rr=await api('GET','/v1/payments/'+p.intentId);
+      if(rr.intent.status==='succeeded'){ const s=pg.querySelector('#px-status'); if(s) s.textContent='Pagamento confirmado!'; after(()=>replace('success',{intentId:p.intentId}),500); } }catch(e){} },1200);
+  }};
+const EV={created:['Cobrança criada','valor definido pelo servidor'],
+  psp_pending:['Comunicação com o provedor','canal criptografado'],
+  psp_confirmed:['Pagamento confirmado','pelo servidor/provedor'],
+  wallet_debited:['Wallet debitada','valor autorizado no servidor'],
+  connector_notified:['Estacionamento notificado','saída liberada no sistema parceiro'],
+  receipt_issued:['Comprovante emitido','disponível no histórico']};
+SCREENS.processing = { immersive:true, render:p=>`
+  <div class="pad" style="flex:1;display:flex;flex-direction:column">
+    ${hdr('Processando pagamento', p.label||'')}
+    <div class="pro-wrap"><div class="bigspin"></div>
+      <div style="font-size:19px;font-weight:700" id="ptxt">Preparando cobrança…</div>
+      <div class="mono" style="font-size:12px;color:var(--ink2);margin-top:6px">${p.amt||''}</div></div>
+    <div class="steps" id="pr-steps"></div>
+    <p class="mono" style="font-size:10.5px;color:var(--ink3);text-align:center;margin:14px 0 6px" id="pr-idem"></p>
+  </div>`,
+  async mount(pg,p){
+    let r=await seguro(()=>api('GET','/v1/payments/'+p.intentId));
+    if(!r){ dead(pg,'Não foi possível carregar a cobrança.'); return; }
+    let it=r.intent;
+    if(it.status==='requires_confirmation'){
+      r=await seguro(()=>api('POST','/v1/payments/'+p.intentId+'/confirm',{}, {idem:Idem.for('cfm:'+p.intentId)}));
+      if(r) it=r.intent;
+    }
+    const idemEl=pg.querySelector('#pr-idem');
+    const ev0=it.events.find(e=>e.code==='created');
+    if(idemEl&&ev0&&ev0.d) idemEl.textContent=ev0.d;
+    const draw=intent=>{
+      const seen=new Set(intent.events.map(e=>e.code));
+      const order=['created','psp_pending','wallet_debited','psp_confirmed','connector_notified','receipt_issued'];
+      pg.querySelector('#pr-steps').innerHTML=order.filter(c=>seen.has(c)).map(c=>{
+        const ev=intent.events.find(e=>e.code===c);
+        return `<div class="step on done"><span class="sic">${ic('check')}</span><div><div class="st">${EV[c][0]}</div><div class="sd mono">${esc(ev&&ev.d||EV[c][1])}</div></div></div>`;
+      }).join('')+(intent.status!=='succeeded'?`<div class="step on"><span class="sic"><span class="spin"></span></span><div><div class="st">Aguardando confirmação…</div><div class="sd mono">GET /v1/payments/${intent.id}</div></div></div>`:'');
+      if(intent.status==='succeeded'){ const t=pg.querySelector('#ptxt'); if(t) t.textContent='Pagamento confirmado!'; }
+    };
+    draw(it);
+    every(async()=>{ try{ const rr=await api('GET','/v1/payments/'+p.intentId);
+      draw(rr.intent);
+      if(rr.intent.status==='succeeded'&&rr.intent.receipt) after(()=>replace('success',{intentId:p.intentId}),500);
+    }catch(e){} },700);
+  }};
+SCREENS.success = { immersive:true, render:()=>`<div class="pad" id="sc-wrap" style="flex:1;display:flex;flex-direction:column;padding-top:40px">${skel()}</div>`,
+  async mount(pg,p){
+    let it=null;
+    for(let i=0;i<10;i++){ const r=await api('GET','/v1/payments/'+p.intentId).catch(()=>null);
+      if(!r) return; it=r.intent; if(it.receipt) break; await wait(400); }
+    if(!it){ dead(pg,'Não foi possível carregar o resultado.'); return; }
+    const free=it.amount<=0, rc=it.receipt;
+    pg.innerHTML=`<div class="pro-wrap" style="flex:none">
+      <div class="okmark"><svg viewBox="0 0 24 24" fill="none" stroke="#0E5B3A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <h2 style="font-size:24px;line-height:1.15">${free?'Saída liberada com sucesso!':'Pagamento realizado com sucesso!'}</h2>
+      <p class="muted" style="margin-top:8px">${free?'Nenhum valor cobrado — tolerância.':fmtBRL(it.amount)+' · '+it.methodLabel+' · aut. '+(rc?rc.authCode:'—')}</p>
+      <p class="mono" style="font-size:12px;color:var(--ink2);margin-top:6px">você economizou ~7 min de fila</p></div>
+    <div>${ticketCard({code:it.ticketCode,parkingName:it.parkingName,entryAt:it.entryAt,mins:it.mins,paid:true})}</div>
+    <div class="banner b-ok" style="margin-top:14px">${ic('timer')}<div><b>Saída liberada.</b> Validade: <b class="mono" id="exit-t">30:00</b>.</div></div>
+    <div style="margin-top:auto;padding-top:20px">
+      <button class="btn btn-d" onclick="A.go('receipt',{paymentId:'${it.id}'})">${ic('receipt')} Ver comprovante</button>
+      <button class="btn btn-o" style="margin-top:10px" onclick="A.tab('home')">Ir para a saída ${ic('arrow-right')}</button>
+    </div>`;
+    paintCodes(pg);
+    after(()=>{ const s=pg.querySelector('[data-stamp]'); s&&s.classList.add('on'); vibrate(30); },380);
+    if(rc) countdown(pg.querySelector('#exit-t'), rc.validUntil, ()=>{ const e=pg.querySelector('#exit-t'); if(e) e.textContent='esgotada'; });
+  }};
+SCREENS.receipt = { immersive:true, render:()=>`<div class="pad" id="rc-wrap">${skel()}</div>`,
+  async mount(pg,p){
+    const r=await seguro(()=>api('GET','/v1/payments/'+p.paymentId));
+    if(!r||!r.intent.receipt){ dead(pg,'Comprovante não encontrado.'); return; }
+    const it=r.intent, rc=it.receipt;
+    pg.innerHTML=`${hdr('Comprovante digital','transação '+it.id)}
+    ${ticketCard({code:it.ticketCode,parkingName:it.parkingName,entryAt:it.entryAt,mins:it.mins,paid:true})}
+    <div class="rcpt" style="margin-top:16px">
+      <div class="ov" style="margin-bottom:6px">Detalhes ${it.isTest?'· TESTE':''}</div>
+      <div class="ln"><span class="k">Ticket</span><span class="dots"></span><span class="v">${it.ticketCode}</span></div>
+      <div class="ln"><span class="k">Estacionamento</span><span class="dots"></span><span class="v" style="text-align:right;max-width:50%">${it.parkingName}</span></div>
+      <div class="ln"><span class="k">Entrada</span><span class="dots"></span><span class="v">${fmtDay(rc.entryAt)} · ${fmtTime(rc.entryAt)}</span></div>
+      <div class="ln"><span class="k">Permanência</span><span class="dots"></span><span class="v">${fmtDur(it.mins)}</span></div>
+      <div class="ln"><span class="k">Pago em</span><span class="dots"></span><span class="v">${fmtDay(rc.paidAt)} · ${fmtTime(rc.paidAt)}</span></div>
+      <div class="ln"><span class="k">Forma</span><span class="dots"></span><span class="v">${rc.methodLabel}</span></div>
+      <div class="ln"><span class="k">Autorização</span><span class="dots"></span><span class="v">${rc.authCode}</span></div>
+      ${linesHTML(it.lines)}
+      <div class="tot"><span class="k">${rc.total>0?'Total pago':'Valor'}</span><span class="v">${fmtBRL(rc.total)}</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;margin-top:22px">
+      <canvas class="qr-c" data-qr="VAL-${rc.id}"></canvas>
+      <div class="ov" style="margin-top:10px">Código de validação na cancela</div>
+      <div class="mono" style="font-weight:600;font-size:15px;letter-spacing:.14em;margin-top:4px">VAL·${rc.id.replace('rc_','').toUpperCase()}·${rc.validationCode}</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:22px">
+      <button class="btn btn-o btn-sm" onclick="A.copyReceipt('${it.id}')">${ic('copy')} Copiar</button>
+      <button class="btn btn-o btn-sm" onclick="A.shareReceipt('${it.id}')">${ic('share')} Compartilhar</button>
+    </div>`;
+    paintCodes(pg); pg.querySelector('[data-stamp]').classList.add('on');
+  }};
+SCREENS.payments = { render:()=>`
+  <div class="pad" style="padding-top:24px">
+    <div class="hdr" style="padding:0 0 14px"><div class="grow"><div class="h1" style="font-size:24px">Meus pagamentos</div><div class="hsub">comprovantes sempre disponíveis</div></div></div>
+    <div class="seg"><button class="${UI.histSeg==='pay'?'on':''}" onclick="A.histSeg('pay')">Pagamentos</button>
+    <button class="${UI.histSeg==='tk'?'on':''}" onclick="A.histSeg('tk')">Tickets de teste</button></div>
+    <div id="hist-body" style="margin-top:14px">${skel()}</div>
+  </div>`,
+  async mount(pg){
+    const body=pg.querySelector('#hist-body');
+    if(UI.histSeg==='pay'){
+      const list=await seguro(()=>api('GET','/v1/payments'));
+      if(!list){ body.innerHTML=`<div class="banner b-inf">${ic('alert')}<div>Falha ao carregar.</div></div>`; return; }
+      if(!list.length){ body.innerHTML=`<div style="text-align:center;padding:50px 20px;color:var(--ink2)">${ic('receipt')}<p style="margin-top:12px;font-weight:600">Nenhum pagamento ainda</p></div>`; return; }
+      let curM='';
+      body.innerHTML=list.map(x=>{
+        const mh=fmtMonth(x.confirmedAt).replace(/^\w/,c=>c.toUpperCase());
+        const head=mh!==curM?(curM=mh,`<div class="ov" style="margin:18px 0 4px">${mh}</div>`):'';
+        return head+`<button class="txn" onclick="A.go('receipt',{paymentId:'${x.id}'})">
+          <span class="mg">${x.parkingInit}</span>
+          <span class="grow"><span class="tc">${x.parkingName}</span><span class="td">${fmtDay(x.confirmedAt)} · ${fmtTime(x.confirmedAt)} · ${x.ticketCode} · ${x.methodLabel}</span></span>
+          <span class="tv"><span class="v">${fmtBRL(x.amount)}</span><div class="td mono" style="font-size:10px;color:var(--green)">pago</div></span>${ic('chevron-right')}</button>`;
+      }).join('');
+    } else {
+      const list=await seguro(()=>api('GET','/v1/tickets'));
+      if(!list){ body.innerHTML=`<div class="banner b-inf">${ic('alert')}<div>Falha ao carregar.</div></div>`; return; }
+      body.innerHTML=`<div class="ov" style="margin:4px 0 8px;color:var(--amber)">Tickets de teste</div>`+
+      list.map(t=>`<div class="txn"><span class="mg lt">${t.code.slice(0,2)}</span>
+        <span class="grow"><span class="tc">${t.code}</span><span class="td">${t.parkingName} · entrada ${fmtDay(t.entryAt)} ${fmtTime(t.entryAt)}</span></span>
+        <span class="chip ${t.status==='paid'?'ok':(t.integrated?'off':'warn')}">${t.status==='paid'?'pago':(t.integrated?'aberto':'não integrado')}</span></div>`).join('');
+    }
+  }};
+SCREENS.parkings = { render:()=>`
+  <div class="pad" style="padding-top:24px">
+    ${hdr('Estacionamentos compatíveis','status de integração em tempo real')}
+    <div class="f" style="position:relative"><span style="position:absolute;left:12px;top:14px;color:var(--ink3)">${ic('search')}</span>
+    <input class="fi" id="pk-q" placeholder="Buscar por nome ou cidade" style="padding-left:42px"></div>
+    <div id="pk-list" style="margin-top:8px">${skel()}</div>
+    <div class="banner b-inf" style="margin-top:16px">${ic('info')}<div>Só aparecem aqui estacionamentos com integração <b>realmente ativa</b> — nenhum é simulado além do conector de TESTE.</div></div>
+  </div>`,
+  async mount(pg){
+    const list=await seguro(()=>api('GET','/v1/parkings'));
+    const el=pg.querySelector('#pk-list');
+    if(!list){ el.innerHTML=`<div class="banner b-inf">${ic('alert')}<div>Falha ao carregar.</div></div>`; return; }
+    const draw=q=>{ q=(q||'').toLowerCase();
+      const items=list.filter(p=>p.integration==='connected'&&(p.name+' '+p.addr).toLowerCase().includes(q));
+      el.innerHTML=items.map(p=>`<button class="txn" style="width:100%;text-align:left" onclick="A.tab('scan')">
+        <span class="mg">${p.init}</span>
+        <span class="grow"><span class="tc" style="font-weight:600;font-size:15px">${p.name}</span><span class="td">${p.addr}</span></span>
+        <span style="text-align:right"><span class="chip yel">${p.badge}</span><div class="td mono" style="font-size:10px;margin-top:5px;color:var(--green)">integrado</div></span></button>`).join('')
+        || `<p class="muted" style="padding:20px 4px">Nenhum resultado.</p>`; };
+    draw(''); pg.querySelector('#pk-q').addEventListener('input',e=>draw(e.target.value));
+  }};
+SCREENS.methods = { render:()=>`<div class="pad" id="mt-wrap" style="padding-top:24px">${skel()}</div>`,
+  async mount(pg){
+    const m=await seguro(()=>api('GET','/v1/methods'));
+    if(!m){ dead(pg,'Não foi possível carregar.'); return; }
+    pg.innerHTML=`${hdr('Formas de pagamento')}
+    <div class="trow"><span class="icw" style="border-radius:13px;background:#EFEDE4;width:44px;height:44px;display:grid;place-items:center">${ic('qr')}</span>
+      <span class="grow"><span class="tt">Pix</span><div class="td">instantâneo · recomendado</div></span><span class="chip ok">padrão</span></div>
+    <div class="trow"><span class="icw" style="border-radius:13px;background:#EFEDE4;width:44px;height:44px;display:grid;place-items:center">${ic('wallet')}</span>
+      <span class="grow"><span class="tt">ParkPay Wallet</span><div class="td mono">saldo ${fmtBRL(m.wallet)}</div></span></div>
+    <div class="ov" style="margin:20px 0 4px">Cartões tokenizados</div>
+    ${m.cards.map(c=>`<div class="trow" style="width:100%">
+      <span class="icw" style="border-radius:13px;background:#EFEDE4;width:44px;height:44px;display:grid;place-items:center">${ic('credit-card')}</span>
+      <span class="grow"><span class="tt">${c.brand} •••• ${c.last4}</span><div class="td mono">${c.token} · val. ${c.exp}</div></span>
+      <button class="chip" data-rm="${c.id}" style="cursor:pointer;color:var(--red);border-color:#EBCBC5">remover</button></div>`).join('')}
+    <button class="btn btn-o" style="margin-top:14px" onclick="A.go('card',{from:'methods'})">${ic('plus')} Adicionar cartão</button>
+    <div class="banner b-inf" style="margin-top:16px">${ic('shield-check')}<div>O ParkPay não armazena o número do cartão — só o token, no servidor.</div></div>`;
+    pg.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',async()=>{
+      const r=await seguro(()=>api('DELETE','/v1/methods/cards/'+b.dataset.rm));
+      if(r){ render('methods',{},'back'); toast('Cartão removido','x'); }
+    }));
+  }};
+SCREENS.account = { render:()=>{ const u=App.user||{name:'',email:'',settings:{}}; const s=u.settings||{};
+  return `<div class="pad" style="padding-top:24px">
+    ${hdr('Conta')}
+    <div class="card" style="display:flex;align-items:center;gap:16px">
+      <div class="mg" style="width:56px;height:56px;border-radius:50%;font-size:17px">${u.name.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
+      <div class="grow"><div style="font-size:18px;font-weight:700">${esc(u.name)}</div>
+      <div class="mono" style="font-size:12px;color:var(--ink2)">${esc(u.email)}</div>
+      <div style="color:var(--green);font-size:12.5px;font-weight:600;margin-top:4px">${ic('shield-check')} sessão autenticada</div></div>
+    </div>
+    <div style="margin-top:18px">
+      ${rowHTML({icn:'user',t:'Dados da conta',d:'nome, e-mail e telefone',click:"A.go('accountdata')"})}
+      ${rowHTML({icn:'credit-card',t:'Formas de pagamento',d:'Pix, wallet e cartões',click:"A.go('methods')"})}
+      ${rowHTML({icn:'receipt',t:'Meus comprovantes',d:'histórico completo',click:"A.tab('payments')"})}
+      ${rowHTML({icn:'flask',t:'Ambiente e integrações',d:'o que é real, o que é teste',click:"A.go('env')"})}
+      ${rowHTML({icn:'help',t:'Ajuda',d:'dúvidas frequentes',click:"A.go('help')"})}
+    </div>
+    <div class="ov" style="margin:22px 0 4px">Preferências</div>
+    <div class="trow"><span class="grow"><span class="tt">Avisos de pagamento</span></span><button class="switch ${s.notify?'on':''}" onclick="A.tgl('notify',this)"></button></div>
+    <div class="trow" style="border:0"><span class="grow"><span class="tt">Alerta de tolerância</span></span><button class="switch ${s.reminder?'on':''}" onclick="A.tgl('reminder',this)"></button></div>
+    <div style="margin-top:20px;border-top:1px solid var(--line);padding-top:8px">
+      ${rowHTML({icn:'building',t:'Portal do Parceiro',d:'área para estacionamentos',click:"A.enterPartner()"})}
+      <button class="lrow" style="color:var(--red)" onclick="A.logout()"><span class="icw" style="color:var(--red)">${ic('log-out')}</span><span class="lt" style="font-weight:500">Sair da conta</span></button>
+    </div>
+  </div>`}};
+SCREENS.accountdata = { render:()=>{ const u=App.user||{name:'',email:'',phone:''};
+  return `<div class="pad" style="padding-top:24px">${hdr('Dados da conta')}
+    <form class="f" id="pf">
+      <label><span class="ov">Nome completo</span><input class="fi" id="p-name" value="${esc(u.name)}"></label>
+      <label style="margin-top:14px"><span class="ov">E-mail</span><input class="fi" id="p-email" type="email" value="${esc(u.email)}"><span class="ferr" id="p-email-err"></span></label>
+      <label style="margin-top:14px"><span class="ov">Telefone</span><input class="fi mono" id="p-phone" value="${esc(u.phone)}"></label>
+      <button class="btn btn-d" style="margin-top:20px">${ic('check')} Salvar alterações</button>
+    </form></div>`},
+  mount(pg){
+    pg.querySelector('#pf').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const em=pg.querySelector('#p-email'), ee=pg.querySelector('#p-email-err');
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em.value)){ em.classList.add('err'); ee.textContent='E-mail inválido'; ee.style.display='block'; return; }
+      em.classList.remove('err'); ee.style.display='none';
+      const r=await seguro(()=>api('PUT','/v1/me',{name:pg.querySelector('#p-name').value.trim(),email:em.value.trim(),phone:pg.querySelector('#p-phone').value.trim()}));
+      if(!r) return;
+      App.user=r.user; toast('Dados atualizados'); back();
+    });
+  }};
+SCREENS.env = { render:()=>`<div class="pad" id="env-wrap" style="padding-top:24px">${skel()}</div>`,
+  async mount(pg){
+    const st=await seguro(()=>api('GET','/v1/status'));
+    if(!st){ dead(pg,'Não foi possível consultar o status.'); return; }
+    const gw=st.gateway||{};
+    pg.innerHTML=`${hdr('Ambiente e integrações','diagnóstico honesto')}
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="ov">Ambiente</span>
+        <span class="chip ${st.env==='test'?'warn':'ok'}">${st.env==='test'?'TESTES':'PRODUÇÃO'}</span></div>
+      <div class="mono" style="font-size:11.5px;color:var(--ink2);margin-top:10px">backend: ${esc(location.origin)} · contrato ${st.contractVersion} · banco: SQLite (parkpay.db)</div>
+      <div class="mono" style="font-size:11.5px;color:var(--ink2);margin-top:4px">gateway: ${esc(gw.label||'—')}</div>
+    </div>
+    <div class="ov" style="margin:20px 0 2px;color:var(--green)">Funcionando de verdade</div>
+    <div class="card" style="padding:6px 16px">
+      <div class="strow"><span class="sti ok">${ic('check')}</span><div><b>Backend + banco de dados</b><span class="muted">API v1 + SQLite: usuários, tickets, pagamentos, recibos e auditoria persistidos.</span></div></div>
+      <div class="strow"><span class="sti ok">${ic('check')}</span><div><b>Câmera real</b><span class="muted">getUserMedia + BarcodeDetector (fallback ZXing). Em localhost e HTTPS.</span></div></div>
+      <div class="strow"><span class="sti ok">${ic('check')}</span><div><b>Valores e status no servidor</b><span class="muted">cotação com quoteId; "pago" só após confirmação; idempotência anti-duplicidade.</span></div></div>
+      <div class="strow"><span class="sti ok">${ic('check')}</span><div><b>Contas e sessões</b><span class="muted">senhas com hash+salt, tokens com expiração, rate limit, registro de auditoria.</span></div></div>
+    </div>
+    <div class="ov" style="margin:20px 0 2px;color:var(--amber)">Ainda em modo de teste</div>
+    <div class="card" style="padding:6px 16px">
+      <div class="strow"><span class="sti test">${ic('flask')}</span><div><b>Pagamento: ${gw.status==='simulado'?'SIMULADO':'PSP de teste'}</b><span class="muted">${gw.status==='simulado'?'defina PSP_ACCESS_TOKEN no servidor para cobrança real.':'cobranças reais no ambiente de testes do Mercado Pago.'}</span></div></div>
+      <div class="strow"><span class="sti test">${ic('flask')}</span><div><b>Conector de estacionamento: Sandbox</b><span class="muted">tickets fictícios marcados TESTE; nenhuma integração real com cancelas.</span></div></div>
+    </div>
+    <div class="ov" style="margin:20px 0 2px">Pendente para produção</div>
+    <div class="card" style="padding:6px 16px">
+      <div class="strow"><span class="sti todo">${ic('banknote')}</span><div><b>Credenciais de PSP</b><span class="muted">PSP_ACCESS_TOKEN (secreta, só no servidor) + chave pública para o SDK de cartão.</span></div></div>
+      <div class="strow"><span class="sti todo">${ic('plug')}</span><div><b>Conectores reais</b><span class="muted">API de tickets/tarifas + endpoint de liberação de saída de cada estacionamento parceiro.</span></div></div>
+      <div class="strow"><span class="sti todo">${ic('server')}</span><div><b>Escala</b><span class="muted">migrar SQLite → PostgreSQL; deploy com HTTPS (Render/Railway).</span></div></div>
+    </div>
+    <div class="ov" style="margin:20px 0 4px">Auditoria (servidor)</div>
+    ${st.audit&&st.audit.length? st.audit.map(a=>`<div class="txn"><span class="mg lt" style="width:36px;height:36px">${ic('shield-check')}</span>
+      <span class="grow"><span class="tc mono" style="font-size:12px">${esc(a.acao)}</span><span class="td">${esc(a.ator)} · ${fmtDay(a.ts)} ${fmtTime(a.ts)}</span></span></div>`).join('')
+      :'<p class="muted" style="font-size:13px;padding:8px 2px">Nenhum evento ainda.</p>'}`;
+  }};
+SCREENS.help = { render:()=>`
+  <div class="pad" style="padding-top:24px">${hdr('Ajuda')}
+    ${[['Como funciona?','Escaneie o QR/código de barras do ticket. O app envia ao backend, que consulta o estacionamento via conector, calcula o valor no servidor e mostra antes de cobrar. Confirmado o pagamento, o estacionamento é notificado e a saída liberada.'],
+      ['A câmera não abre…','Ela exige ambiente seguro: o endereço do servidor (localhost ou https://). Em pré-visualizações de chat o navegador bloqueia por segurança.'],
+      ['Posso pagar duas vezes?','Não: ticket pago retorna comprovante, e cobranças em andamento são reaproveitadas por idempotência.'],
+      ['E a cancela?','O comprovante tem QR de validação e autorização. Em produção, o conector do estacionamento marca a saída no sistema dele automaticamente.']]
+      .map(f=>`<details class="faq"><summary>${f[0]} ${ic('chevron-down')}</summary><div class="fa">${f[1]}</div></details>`).join('')}
+    <div class="banner b-inf" style="margin-top:16px">${ic('flask')}<div>Ambiente de testes — nenhum pagamento real é processado.</div></div>
+  </div>`};
+/* ================= TELAS · PARCEIRO ================= */
+SCREENS.plogin = { immersive:true, render:()=>`
+  <div class="pad" style="flex:1;display:flex;flex-direction:column;padding-top:56px">
+    <div class="wordmark" style="color:var(--ink)"><span class="wt"></span><b style="font-size:21px">ParkPay <span style="font-weight:500;color:var(--ink2)">Parceiros</span></b></div>
+    <h1 style="font-size:26px;line-height:1.12;margin-top:24px">Receba pagamentos direto no seu estacionamento.</h1>
+    <div class="card" style="margin-top:22px">
+      <div class="ov">Ambiente de testes</div>
+      <form id="plf" class="f" style="margin-top:14px">
+        <label><span class="ov">E-mail</span><input class="fi" value="gestor@estacionamais.demo" id="pl-mail"></label>
+        <label style="margin-top:12px"><span class="ov">Senha</span><input class="fi" type="password" value="demo1234" id="pl-pass"></label>
+        <button class="btn btn-p" type="submit" id="pl-btn" style="margin-top:14px">${ic('lock')} Entrar no portal</button>
+      </form>
+    </div>
+    <div style="margin-top:auto;padding-top:20px">
+      <button class="lrow" style="justify-content:center;gap:10px;color:var(--ink2)" onclick="A.exitPartner()"><span class="lt" style="font-weight:500;font-size:14px">Voltar ao app do usuário</span></button>
+    </div>
+  </div>`,
+  mount(pg){
+    pg.querySelector('#plf').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=pg.querySelector('#pl-btn'), old=btn.innerHTML;
+      btn.disabled=true; btn.innerHTML='Autenticando…';
+      const r=await seguro(()=>api('POST','/v1/auth/login',{email:pg.querySelector('#pl-mail').value.trim(),password:pg.querySelector('#pl-pass').value},{scope:'partner'}));
+      btn.disabled=false; btn.innerHTML=old;
+      if(!r) return;
+      App.ptok=r.token; App.partner=r.user;
+      resetTo('phome'); toast('Bem-vindo ao portal do parceiro');
+    });
+  }};
+SCREENS.phome = { render:()=>`<div class="pad" id="ph-wrap" style="padding-top:24px">${skel()}</div>`,
+  async mount(pg){
+    const s=await seguro(()=>api('GET','/v1/partner/summary',undefined,{scope:'partner'}));
+    if(!s){ dead(pg,'Não foi possível carregar o painel.'); return; }
+    const labels=[...Array(7)].map((_,i)=>['dom','seg','ter','qua','qui','sex','sáb'][new Date(Date.now()-(6-i)*864e5).getDay()]);
+    const today=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+    pg.innerHTML=`<div class="hdr" style="padding:0 0 6px"><div class="grow"><div class="ov">Portal do parceiro · hoje</div>
+      <div class="h1" style="font-size:21px">${esc(s.company.name)} <span class="tk-test">TESTE</span></div><div class="hsub">${today}</div></div>
+      <button class="hbtn" onclick="A.exitPartner()">${ic('log-out')}</button></div>
+    <div class="kpis" style="margin-top:10px">
+      <div class="kpi"><div class="ov">Receita via app hoje</div><div class="kv" style="color:var(--green)">${fmtBRL(s.todayGross)}</div><div class="kd">pagamentos confirmados</div></div>
+      <div class="kpi"><div class="ov">Pagamentos hoje</div><div class="kv">${s.todayCount}<small>tickets</small></div><div class="kd">Pix · cartão · wallet</div></div>
+      <div class="kpi"><div class="ov">Ticket médio</div><div class="kv">${fmtBRL(s.avg)}</div><div class="kd">últimas 24h</div></div>
+      <div class="kpi"><div class="ov">Repasse (líquido)</div><div class="kv">${fmtBRL(s.payout)}</div><div class="kd">1,9% de taxa · D+1</div></div>
+    </div>
+    <div class="ov" style="margin:22px 0 8px">Receita · últimos 7 dias</div>
+    <div class="card" style="padding:14px 10px 8px"><canvas class="chart" data-chart='${JSON.stringify(s.daily)}' data-labels='${JSON.stringify(labels)}'></canvas></div>
+    <div class="ov" style="margin:22px 0 4px">Últimas transações</div>
+    ${s.recent.length? s.recent.map(r=>`<div class="txn"><span class="mg lt">${r.code.slice(0,2)}</span>
+      <span class="grow"><span class="tc">${r.code}</span><span class="td">${r.parkingId==='parkcenter'?'ParkCenter Shopping':'Garagem Parque Aurora'} · ${r.methodLabel}</span></span>
+      <span class="tv"><span class="v">${fmtBRL(r.gross)}</span><div class="td mono" style="font-size:10px">${fmtTime(r.ts)}</div></span></div>`).join('')
+      :'<p class="muted" style="font-size:13px;padding:8px 2px">Nenhuma transação hoje ainda.</p>'}`;
+    paintCodes(pg);
+  }};
+SCREENS.ptickets = { render:()=>`
+  <div class="pad" style="padding-top:24px">${hdr('Tickets','entradas e pagamentos em tempo real')}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 8px">
+      ${[['all','Todos'],['open','Em aberto'],['app','Pago no app'],['totem','Pago no totem']].map(f=>
+        `<button class="chip ${UI.filter===f[0]?'ok':''}" onclick="A.filter('${f[0]}')">${f[1]}</button>`).join('')}
+    </div>
+    <div id="pt-list">${skel()}</div>
+  </div>`,
+  async mount(pg){
+    const list=await seguro(()=>api('GET','/v1/partner/tickets',undefined,{scope:'partner'}));
+    const el=pg.querySelector('#pt-list');
+    if(!list){ el.innerHTML=`<div class="banner b-inf">${ic('alert')}<div>Falha ao carregar.</div></div>`; return; }
+    const draw=()=>{ const items=list.filter(t=>UI.filter==='all'||t.st===UI.filter);
+      el.innerHTML=items.map(t=>`<div class="txn" style="width:100%;text-align:left">
+        <span class="mg lt">${t.code.slice(0,2)}</span>
+        <span class="grow"><span class="tc">${t.code}</span><span class="td">${t.parkingId==='parkcenter'?'ParkCenter':'Aurora'} · entrada ${fmtTime(t.entryAt)} · ${fmtDur(Math.round((Date.now()-t.entryAt)/6e4))}</span></span>
+        <span style="text-align:right"><span class="mono" style="font-weight:600;font-size:13px">${t.value!=null?fmtBRL(t.value):'—'}</span>
+        <div style="margin-top:3px"><span class="chip ${t.st==='app'?'ok':t.st==='open'?'warn':''}">${t.st==='app'?'pago no app':t.st==='open'?'em aberto':'totem'}</span></div></span></div>`).join('')
+        || '<p class="muted" style="padding:16px 4px">Nenhum ticket neste filtro.</p>'; };
+    draw(); every(draw,30000);
+  }};
+SCREENS.ptxns = { render:()=>`<div class="pad" id="tx-wrap" style="padding-top:24px">${skel()}</div>`,
+  async mount(pg){
+    const rows=await seguro(()=>api('GET','/v1/partner/txns',undefined,{scope:'partner'}));
+    if(!rows){ dead(pg,'Não foi possível carregar.'); return; }
+    pg.innerHTML=`${hdr('Transações','hoje · repasse D+1 automático')}
+    <div class="kpis">
+      <div class="kpi"><div class="ov">Bruto hoje</div><div class="kv">${fmtBRL(rows.reduce((s,r)=>s+r.gross,0))}</div></div>
+      <div class="kpi"><div class="ov">Taxa ParkPay</div><div class="kv" style="font-size:19px">1,9%</div><div class="kd">por transação</div></div>
+    </div>
+    <div class="ov" style="margin:18px 0 4px">Detalhamento</div>
+    ${rows.length? rows.map(r=>`<div class="txn" style="width:100%;text-align:left;align-items:flex-start">
+      <span class="mg lt" style="width:38px;height:38px">${r.code.slice(0,2)}</span>
+      <span class="grow"><span class="tc">${r.code}</span><span class="td">${r.parkingId==='parkcenter'?'ParkCenter':'Aurora'} · ${r.methodLabel} · ${fmtTime(r.ts)}</span>
+      <span class="td mono" style="font-size:10.5px">bruto ${fmtBRL(r.gross)} · taxa ${fmtBRL(r.fee)} · <b style="color:var(--green)">líquido ${fmtBRL(r.net)}</b></span></span>
+      <span class="mono" style="font-weight:600;font-size:13.5px">${fmtBRL(r.net)}</span></div>`).join('')
+      :'<p class="muted" style="font-size:13px;padding:10px 2px">Nenhuma transação hoje.</p>'}
+    <button class="btn btn-d" style="margin-top:16px" onclick="A.exportCSV()">${ic('download')} Exportar CSV</button>`;
+  }};
+SCREENS.pinteg = { render:()=>`<div class="pad" id="pi-wrap" style="padding-top:24px">${skel()}</div>`,
+  async mount(pg){
+    const [d,pk]=await Promise.all([seguro(()=>api('GET','/v1/partner/integration',undefined,{scope:'partner'})),
+                                    seguro(()=>api('GET','/v1/partner/parkings',undefined,{scope:'partner'}))]);
+    if(!d){ dead(pg,'Não foi possível carregar.'); return; }
+    const gw=d.gateway||{};
+    pg.innerHTML=`${hdr('Integrações','conecte seus sistemas ao ParkPay')}
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px"><span class="ov">API ParkPay v1</span>
+        <span class="chip ${gw.status==='live'?'ok':'warn'}">${gw.status==='live'?'PSP ativo':gw.status==='test'?'PSP de teste':'PSP não configurado'}</span></div>
+      <div class="mono" style="font-size:11px;color:var(--ink2);margin-top:10px">chave de API (teste)</div>
+      <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+        <code class="mono" style="flex:1;font-size:12px;background:#EFEDE4;border-radius:9px;padding:10px 12px">${d.apiKey}</code>
+        <button class="hbtn" style="width:42px;height:42px" onclick="A.copyText('${d.apiKey}','Chave copiada')">${ic('copy')}</button></div>
+      <div class="mono" style="font-size:11px;color:var(--ink2);margin-top:12px">webhook de pagamentos</div>
+      <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+        <code class="mono" style="flex:1;font-size:11px;background:#EFEDE4;border-radius:9px;padding:10px 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.webhookOut}</code>
+        <button class="hbtn" style="width:42px;height:42px" onclick="A.copyText('${d.webhookOut}','Webhook copiado')">${ic('copy')}</button></div>
+    </div>
+    <div class="ov" style="margin:20px 0 4px">Taxa de conveniência por estacionamento</div>
+    ${(pk?pk.parkings:[]).map(p=>`
+      <div class="card" style="margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <span class="mg lt">${p.iniciais}</span>
+        <span class="grow"><b style="font-size:14.5px">${p.nome}</b>
+          <div class="td">${p.modelo_taxa==='user'?'usuário paga R$ 0,49':'estacionamento absorve'}</div></span>
+        <button class="switch ${p.modelo_taxa==='user'?'on':''}" onclick="A.setFee('${p.id}','${p.modelo_taxa==='user'?'operator':'user'}')"></button>
+      </div>`).join('')}
+    <div class="ov" style="margin:20px 0 4px">Conectores</div>
+    ${d.connectors.map(c=>`<div class="trow">
+      <span class="icw" style="width:44px;height:44px;border-radius:13px;background:${c.status==='connected'?'var(--green-soft)':'#EFEDE4'};color:${c.status==='connected'?'var(--green)':'var(--ink2)'};display:grid;place-items:center">${ic('plug')}</span>
+      <span class="grow"><span class="tt">${c.label}</span><div class="td mono">${c.status==='connected'?'ativo':'aguardando credenciais do parceiro'}</div></span>
+      <span class="chip ${c.status==='connected'?'ok':'off'}">${c.status==='connected'?(c.test?'TESTE':'ativo'):'não configurado'}</span></div>`).join('')}
+    <div class="banner b-inf" style="margin-top:14px">${ic('info')}<div><b>Credenciais do PSP ficam no servidor</b> (variável PSP_ACCESS_TOKEN), nunca no app. Configurando-a, as cobranças passam a ser reais no provedor.</div></div>`;
+  }};
+/* ---------- ações ---------- */
+const A = {
+  go, back,
+  tab(id){ if(id==='scan'){ go('scan'); } else resetTo(id); },
+  ptab(id){ resetTo(id); },
+  closeSheet(){ const r=$('#sheet-root'); if(!r.innerHTML) return; r.classList.remove('on'); setTimeout(()=>r.innerHTML='',240); },
+  async demoLogin(){
+    const r=await seguro(()=>api('POST','/v1/auth/login',{email:'ana.ribeiro@email.com',password:'demo1234'}));
+    if(!r) return;
+    App.tok=r.token; App.user=r.user; App.mode='user';
+    resetTo('home'); toast('Conta de teste ativa — bem-vinda, Ana','flask');
+  },
+  loginSheet(){
+    sheet(`<div class="ov" style="margin-bottom:4px">Entrar</div>
+    <form class="f" id="lgf">
+      <label><span class="ov">E-mail</span><input class="fi" id="lg-mail"></label>
+      <label style="margin-top:12px"><span class="ov">Senha</span><input class="fi" type="password" id="lg-pass"></label>
+      <span class="ferr" id="lg-err" style="display:none"></span>
+      <button class="btn btn-p" style="margin-top:16px">${ic('lock')} Entrar</button>
+    </form>`);
+    $('#lgf').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const r=await api('POST','/v1/auth/login',{email:$('#lg-mail').value.trim(),password:$('#lg-pass').value}).catch(x=>x);
+      if(r&&r.token){ App.tok=r.token; App.user=r.user; A.closeSheet(); resetTo('home'); toast('Login autenticado','shield-check'); }
+      else { const el=$('#lg-err'); el.textContent=ERROS[r&&r.code]||'Credenciais inválidas.'; el.style.display='block'; }
+    });
+  },
+  registerSheet(){
+    sheet(`<div class="ov" style="margin-bottom:4px">Criar conta</div>
+    <form class="f" id="rgf">
+      <label><span class="ov">Nome completo</span><input class="fi" id="rg-name"></label>
+      <label style="margin-top:12px"><span class="ov">E-mail</span><input class="fi" type="email" id="rg-mail"></label>
+      <label style="margin-top:12px"><span class="ov">Senha (mín. 8 caracteres)</span><input class="fi" type="password" id="rg-pass"></label>
+      <span class="ferr" id="rg-err" style="display:none"></span>
+      <button class="btn btn-p" style="margin-top:16px">${ic('plus')} Criar minha conta</button>
+    </form>`);
+    $('#rgf').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const r=await api('POST','/v1/auth/register',{name:$('#rg-name').value.trim(),email:$('#rg-mail').value.trim(),password:$('#rg-pass').value}).catch(x=>x);
+      if(r&&r.token){ App.tok=r.token; App.user=r.user; A.closeSheet(); resetTo('home'); toast('Conta criada — bem-vindo!','shield-check'); }
+      else { const el=$('#rg-err'); el.textContent=ERROS[r&&r.code]||'Não foi possível criar a conta.'; el.style.display='block'; }
+    });
+  },
+  async logout(){ await seguro(()=>api('POST','/v1/auth/logout')); App.tok=null; App.user=null; resetTo('welcome'); },
+  async tgl(k,el){
+    const s=Object.assign({},(App.user||{}).settings||{}); s[k]=!s[k];
+    el.classList.toggle('on'); vibrate(12);
+    const r=await seguro(()=>api('PUT','/v1/me',{settings:s}));
+    if(r) App.user=r.user;
+  },
+  histSeg(v){ UI.histSeg=v; render('payments',{},'back'); },
+  filter(v){ UI.filter=v; render('ptickets',{},'back'); },
+  initCamera(pg){
+    const video=pg.querySelector('#camv'), cam=pg.querySelector('.cam'), fb=pg.querySelector('#camfb'), status=pg.querySelector('#scan-status');
+    if(!video){ return; }
+    fb.innerHTML=''; cam.classList.remove('paused');
+    (async()=>{
+      try{
+        if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw {name:'Insecure'};
+        await Scanner.open(video);
+        status.innerHTML='Aponte para o <b>código de barras ou QR Code</b> do ticket';
+        if(Scanner.hasTorch()) pg.querySelector('#torchbtn').style.display='';
+        await Scanner.start(video, code=>A.handleScan(code,pg));
+        pg.querySelector('#scan-note').innerHTML=`<span class="pulse-dot"></span>leitor ativo · ${window.BarcodeDetector?'detector nativo':'ZXing'}`;
+      }catch(e){
+        Scanner.stop();
+        const why={NotAllowedError:['Câmera bloqueada','Clique no ícone de câmera na barra de endereço do navegador e permita o acesso, depois toque em "Tentar novamente".'],
+          NotFoundError:['Nenhuma câmera','Este dispositivo não expôs uma câmera utilizável.'],
+          Insecure:['Câmera exige ambiente seguro','Abra o app pelo endereço do servidor (https://). Pré-visualizações de chat bloqueiam a câmera.'],
+          zxing_fail:['Leitor indisponível','Não foi possível carregar o leitor de fallback (internet?).']}[e.name||'']
+          ||['Câmera indisponível','Não conseguimos iniciar a câmera agora.'];
+        fb.innerHTML=`<div class="okmark" style="background:#26251F;width:80px;height:80px">${ic('camera-off')}</div>
+          <h2 style="font-size:18px">${why[0]}</h2>
+          <p style="color:#B9B5A8;font-size:14px;margin-top:8px;max-width:290px">${why[1]}</p>
+          <button class="btn btn-o btn-sm" style="margin-top:16px;max-width:290px;background:rgba(24,24,20,.82);border-color:#3B3A32;color:#F4F2EC" onclick="A.retryCam()">${ic('refresh')} Tentar novamente</button>`;
+        cam.classList.add('paused');
+        status.textContent='Câmera indisponível';
+      }
+    })();
+  },
+  retryCam(){ const pg=cur(); if(pg&&pg.querySelector('#camv')) A.initCamera(pg); },
+  toggleTorch(){ A._torch=!A._torch; Scanner.torch(A._torch);
+    const b=$('#torchbtn'); if(b) b.style.background=A._torch?'var(--yel)':''; },
+  handleScan(code,pg){
+    vibrate(40);
+    if(pg){ const c=pg.querySelector('.cam'); c&&c.classList.add('locked');
+      const b=pg.querySelector('#scan-badge'); b&&b.classList.add('on'); }
+    Scanner.stop();
+    after(()=>go('lookup',{code}),700);
+  },
+  manualSheet(){
+    sheet(`<div class="ov" style="margin-bottom:4px">Digitar código do ticket</div>
+    <p class="muted" style="font-size:13px;margin-bottom:12px">Digite o código impresso no ticket — a consulta é idêntica à da câmera.</p>
+    <form class="f" id="mcf">
+      <input class="fi mono" id="mc-in" placeholder="PP-0000-0000" style="text-transform:uppercase;letter-spacing:.12em">
+      <button class="btn btn-p" style="margin-top:14px">${ic('search')} Consultar ticket</button>
+    </form>`);
+    $('#mcf').addEventListener('submit',e=>{
+      e.preventDefault();
+      const code=$('#mc-in').value.trim().toUpperCase();
+      if(!code) return;
+      A.closeSheet(); go('lookup',{code});
+    });
+  },
+  demoSheet(){
+    sheet(`<div class="ov" style="margin-bottom:2px;color:var(--amber)">Tickets de teste</div>
+    <p class="muted" style="font-size:13px;margin:6px 0 10px">Equivalente a apontar a câmera para um ticket fictício:</p>
+    <div id="ds-list">carregando…</div>`);
+    (async()=>{
+      const list=await api('GET','/v1/tickets').catch(()=>null);
+      const el=$('#ds-list'); if(!el) return;
+      if(!list){ el.innerHTML='<p class="muted" style="font-size:13px">Falha ao carregar.</p>'; return; }
+      el.innerHTML=list.map(t=>`<button class="txn" style="width:100%;text-align:left" onclick="A.demoScan('${t.code}')">
+        <span class="mg lt">${t.code.slice(0,2)}</span>
+        <span class="grow"><span class="tc">${t.code}</span><span class="td">${t.parkingName} · há ${fmtDur(Math.round((Date.now()-t.entryAt)/6e4))}</span></span>
+        <span class="chip ${t.status==='paid'?'ok':(t.integrated?'off':'warn')}">${t.status==='paid'?'pago':(t.integrated?'aberto':'não integrado')}</span></button>`).join('');
+    })();
+  },
+  demoScan(code){
+    A.closeSheet();
+    const pg=cur();
+    if(pg&&pg.querySelector('.cam')){ pg.querySelector('.cam').classList.add('locked');
+      const b=pg.querySelector('#scan-badge'); b&&b.classList.add('on'); }
+    vibrate(30);
+    after(()=>go('lookup',{code}),650);
+  },
+  async payContinue(ticketId){
+    const m=UI.paySel;
+    let method, instrument=null;
+    if(m==='pix') method='pix';
+    else if(m==='wallet') method='wallet';
+    else {
+      let tok,label;
+      if(m&&m.startsWith('card:')){
+        const c=(UI.methods&&UI.methods.cards||[]).find(x=>'card:'+x.id===m);
+        if(!c){ toast('Cartão inválido — selecione novamente','alert'); return; }
+        tok=c.token; label=`${c.brand} •••• ${c.last4}`;
+      } else {
+        if(!UI.draft){ go('card',{ticketId}); return; }
+        tok=UI.draft.token; label=UI.draft.label;
+      }
+      method=(m==='debit')?'debit':'card'; instrument={token:tok,label};
+    }
+    const key=Idem.for(ticketId+':'+method);
+    const criar=qid=>api('POST','/v1/payments',{ticketId,quoteId:qid,method,instrument},{idem:key});
+    let res;
+    try{
+      const q=await api('GET','/v1/tickets/'+ticketId+'/quote');
+      if(q.status!=='ok'){ toast('Este ticket já foi pago','info'); return; }
+      try{ res=await criar(q.quote.quoteId); }
+      catch(e){ if(e.code==='quote_expired'){ const q2=await api('GET','/v1/tickets/'+ticketId+'/quote'); res=await criar(q2.quote.quoteId); } else throw e; }
+    }catch(e){ erro(e); return; }
+    if(res.alreadyPaid){ toast('Ticket já pago — nenhuma cobrança adicional','shield-check'); replace('receipt',{paymentId:res.paymentId}); return; }
+    const it=res.intent;
+    if(res.reused) toast('Cobrança já em andamento — continuando','info');
+    if(it.status==='succeeded'){ replace('success',{intentId:it.id}); return; }
+    if(it.method==='pix') go('pix',{intentId:it.id});
+    else go('processing',{intentId:it.id,label:it.methodLabel,amt:fmtBRL(it.amount)});
+  },
+  async freeExit(ticketId){
+    const key=Idem.for(ticketId+':free');
+    let res;
+    try{ const q=await api('GET','/v1/tickets/'+ticketId+'/quote');
+      res=await api('POST','/v1/payments',{ticketId,quoteId:q.quote.quoteId,method:'free'},{idem:key}); }
+    catch(e){ erro(e); return; }
+    if(!res.intent) return;
+    go('processing',{intentId:res.intent.id,label:'Liberação automática',amt:'R$ 0,00'});
+  },
+  async pixCheck(id){
+    const r=await seguro(()=>api('GET','/v1/payments/'+id));
+    if(!r) return;
+    toast(r.intent.status==='succeeded'?'Pagamento confirmado!':'Ainda sem confirmação do servidor','info');
+  },
+  copyPix(){ copyText(UI.pixPayload||'','Código Pix copiado'); },
+  copyReceipt(id){
+    api('GET','/v1/payments/'+id).then(r=>{ if(!r||!r.intent.receipt) return;
+      const rc=r.intent.receipt;
+      copyText(`PARKPAY — COMPROVANTE (TESTE)\nTicket ${rc.ticketCode}\n${rc.parkingName}\nEntrada: ${fmtDay(rc.entryAt)} ${fmtTime(rc.entryAt)} · Pago: ${fmtDay(rc.paidAt)} ${fmtTime(rc.paidAt)}\n${rc.methodLabel} · ${fmtBRL(rc.total)}\nAutorização ${rc.authCode}`,'Comprovante copiado');
+    }).catch(()=>{});
+  },
+  shareReceipt(id){
+    api('GET','/v1/payments/'+id).then(r=>{ if(!r||!r.intent.receipt) return;
+      const rc=r.intent.receipt;
+      const txt=`Comprovante ParkPay (teste) — ${rc.parkingName} · ticket ${rc.ticketCode} · ${fmtBRL(rc.total)}`;
+      if(navigator.share) navigator.share({title:'Comprovante ParkPay',text:txt}).catch(()=>{});
+      else copyText(txt,'Comprovante copiado');
+    }).catch(()=>{});
+  },
+  notifyPartner(name){ toast(`Obrigado! Vamos contatar ${name||'o estacionamento'}.`,'send'); after(back,1200); },
+  copyText: copyText,
+  async setFee(id,model){
+    const r=await seguro(()=>api('PUT','/v1/partner/parkings/'+id,{feeModel:model},undefined,{scope:'partner'}));
+    if(!r) return;
+    toast(model==='user'?'Usuários passarão a ver a taxa de R$ 0,49':'Taxa absorvida pelo estacionamento','banknote');
+    render('pinteg',{},'back');
+  },
+  async exportCSV(){
+    const rows=await api('GET','/v1/partner/txns',undefined,{scope:'partner'}).catch(()=>null);
+    if(!rows){ toast('Falha ao exportar','alert'); return; }
+    const out=[['hora','ticket','estacionamento','metodo','bruto','taxa','liquido']];
+    rows.forEach(r=>out.push([fmtTime(r.ts),r.code,r.parkingId,r.methodLabel,r.gross.toFixed(2),r.fee.toFixed(2),r.net.toFixed(2)]));
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob(['\ufeff'+out.map(r=>r.join(';')).join('\n')],{type:'text/csv;charset=utf-8'}));
+    a.download='parkpay-transacoes.csv'; document.body.appendChild(a); a.click(); a.remove();
+    toast('CSV exportado','download');
+  },
+  enterPartner(){ App.mode='partner'; resetTo(App.ptok?'phome':'plogin'); },
+  exitPartner(){ App.mode='user'; resetTo(App.tok?'home':'welcome'); },
+  async demoOpen(code){
+    if(!App.tok){ const r=await seguro(()=>api('POST','/v1/auth/login',{email:'ana.ribeiro@email.com',password:'demo1234'}));
+      if(!r) return; App.tok=r.token; App.user=r.user; }
+    App.mode='user'; resetTo('home'); go('scan');
+    setTimeout(()=>A.demoScan(code),500);
+  },
+  async demoPartner(){
+    if(!App.ptok){ const r=await seguro(()=>api('POST','/v1/auth/login',{email:'gestor@estacionamais.demo',password:'demo1234'},{scope:'partner'}));
+      if(!r){ toast('Faça login no portal dentro do app','info'); return; } App.ptok=r.token; App.partner=r.user; }
+    App.mode='partner'; resetTo('phome'); window.scrollTo({top:0});
+  }
+};
+window.A=A;
+function semBackend(){
+  $('#phone').classList.add('no-tabs');
+  $('#view').innerHTML=`<div class="page"><div class="pad" style="padding-top:52px">
+    <div class="card" style="border-color:#EBCBC5;background:var(--red-soft)">
+      <b style="color:var(--red)">Backend não encontrado</b>
+      <p style="font-size:13.5px;margin-top:6px">O ParkPay roda com servidor próprio (banco de dados + câmera liberada). Se está vendo isto, o servidor não respondeu — verifique se ele está no ar.</p>
+      <button class="btn btn-d btn-sm" style="margin-top:16px" onclick="location.reload()">${ic('refresh')} Tentar de novo</button>
+    </div></div></div>`;
+}
+(async function boot(){
+  try{
+    STATUS = await api('GET','/v1/status');
+  }catch(e){ semBackend(); return; }
+  try{
+    const tick=()=>{ const d=new Date(); $('#sb-time').textContent=`${d.getHours()}:${pad2(d.getMinutes())}`; };
+    tick(); setInterval(tick,20000);
+    $('#envbar').classList.toggle('off', STATUS.env!=='test');
+    const dl=$('#demo-list');
+    if(dl&&STATUS.env==='test'){
+      dl.innerHTML=[['PP-2417-8361','Caso completo com validação de loja'],
+        ['HS-5520-9911','1ª hora grátis + convênio'],
+        ['AR-9042-6673','Diária do aeroporto + taxa de conveniência'],
+        ['MC-3312-4455','Dentro da tolerância · saída grátis'],
+        ['SB-7741-0029','Sem integração configurada'],
+        ['PP-2417-0977','Já pago · bloqueio de cobrança duplicada']]
+        .map(([c,d])=>`<button class="demo-item" onclick="A.demoOpen('${c}')"><code>${c}</code><span>${d}</span></button>`).join('');
+    } else if(dl){ dl.parentElement.style.display='none'; }
+    resetTo('welcome');
+    toast('Conectado ao backend','server');
+  }catch(e){ crash('Falha na inicialização: '+((e&&e.message)||e)); }
+})();
+</script>
+</body>
+</html>**
