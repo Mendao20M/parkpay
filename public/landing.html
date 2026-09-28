@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkPay — Pague seu estacionamento sem fila</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F2EC;--ink:#191813;--ink2:#77746A;--line:#E5E2D7;--green:#0E5B3A;--yel:#FFD645;--yel-ink:#241D02;--mono:'IBM Plex Mono',monospace;--sans:'Space Grotesk',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding:0 20px}
+header{background:#141310;color:#F4F2EC;padding:22px 0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px}
+.wt{width:34px;height:24px;border-radius:6px;background:var(--yel);position:relative;flex:none}
+.wt::before{content:'';position:absolute;right:7px;top:0;bottom:0;border-left:2px dashed rgba(36,29,2,.4)}
+.hero{background:#141310;color:#F4F2EC;padding:56px 0 72px;text-align:center}
+.hero h1{font-size:clamp(30px,6vw,46px);line-height:1.08;letter-spacing:-.02em}
+.hero h1 em{font-style:normal;color:var(--yel)}
+.hero p{color:#B9B5A8;margin:16px auto 28px;max-width:520px;font-size:17px}
+.btn{display:inline-block;padding:16px 28px;border-radius:14px;font-weight:600;font-size:17px;text-decoration:none;transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--yel);color:var(--yel-ink)}
+.btn-o{border:1px solid #3A382F;color:#F4F2EC;margin-top:10px}
+.steps{padding:52px 0}
+.steps h2,.forwho h2,.cta h2{text-align:center;font-size:26px;letter-spacing:-.01em;margin-bottom:6px}
+.sub{text-align:center;color:var(--ink2);margin-bottom:34px;font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 20px;text-align:center}
+.step .num{width:40px;height:40px;border-radius:50%;background:var(--yel);color:var(--yel-ink);display:grid;place-items:center;font:700 18px var(--mono);margin:0 auto 14px}
+.step b{display:block;font-size:17px;margin-bottom:6px}
+.step span{color:var(--ink2);font-size:14px}
+.forwho{padding:52px 0;background:#EFEDE4;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.benefit{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
+.benefit b{display:block;font-size:16px;margin-bottom:4px}
+.benefit span{color:var(--ink2);font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:14px}
+.kpi{text-align:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 14px}
+.kpi .v{font:600 30px var(--mono);color:var(--green)}
+.kpi .d{font:500 11.5px var(--mono);color:var(--ink2);margin-top:4px;text-transform:uppercase;letter-spacing:.08em}
+.cta{padding:60px 0;text-align:center}
+.cta .box{background:var(--yel);color:var(--yel-ink);border-radius:20px;padding:40px 24px;max-width:640px;margin:0 auto}
+.cta .box h2{margin-bottom:8px}
+.cta .box p{font-size:15px;margin-bottom:22px}
+.btn-d{background:#141310;color:#F4F2EC}
+footer{padding:28px 0;color:var(--ink2);font:500 12px var(--mono);text-align:center}
+</style>
+</head>
+<body>
+<header><div class="wrap brand"><span class="wt"></span>ParkPay</div></header>
+<section class="hero"><div class="wrap">
+  <h1>Pague seu estacionamento <em>sem fila</em>.</h1>
+  <p>Escaneie o ticket, pague pelo celular e vá direto para a saída. Sem totens, sem espera, sem dinheiro na mão.</p>
+  <a class="btn btn-p" href="/">Abrir o app</a><br>
+  <a class="btn btn-o" href="#parceiro">Sou estacionamento →</a>
+</div></section>
+<section class="steps"><div class="wrap">
+  <h2>Como funciona</h2>
+  <p class="sub">do ticket à saída em menos de 1 minuto</p>
+  <div class="grid">
+    <div class="step"><div class="num">1</div><b>Escaneie</b><span>Aponte a câmera para o QR ou código de barras do ticket</span></div>
+    <div class="step"><div class="num">2</div><b>Pague</b><span>Confira o valor e pague com Pix ou cartão, no celular</span></div>
+    <div class="step"><div class="num">3</div><b>Saia</b><span>Saída liberada — comprovante com QR de validação</span></div>
+  </div>
+</div></section>
+<section class="forwho" id="parceiro"><div class="wrap">
+  <h2>Para o seu estacionamento</h2>
+  <p class="sub">menos fila, menos custo, mais satisfação</p>
+  <div class="kpis">
+    <div class="kpi"><div class="v">~7min</div><div class="d">economizados por cliente</div></div>
+    <div class="kpi"><div class="v">0</div><div class="d">hardware necessário</div></div>
+    <div class="kpi"><div class="v">D+1</div><div class="d">repasse automático</div></div>
+  </div>
+  <div class="grid">
+    <div class="benefit"><b>Sem fila no totem</b><span>Seu cliente paga de onde estiver, antes mesmo de chegar ao carro.</span></div>
+    <div class="benefit"><b>Sem mudança no seu sistema</b><span>No modelo com frentista, a validação é por QR — zero integração para começar.</span></div>
+    <div class="benefit"><b>Painel do parceiro</b><span>Tickets, transações e repasses em tempo real, no seu celular ou computador.</span></div>
+    <div class="benefit"><b>Modelo flexível</b><span>1,9% por transação para o estacionamento, ou taxa de conveniência paga pelo cliente.</span></div>
+  </div>
+</div></section>
+<section class="cta"><div class="wrap">
+  <div class="box">
+    <h2>Quer o ParkPay no seu estacionamento?</h2>
+    <p>Piloto de 30 dias, sem custo e sem mudanças no seu sistema. Mostramos funcionando no seu celular, em 10 minutos.</p>
+    <a class="btn btn-d" href="https://wa.me/5511964880055?text=Quero%20o%20ParkPay%20no%20meu%20estacionamento">Falar com a equipe</a>
+  </div>
+</div></section>
+<footer><div class="wrap">ParkPay · pague estacionamento sem fila · ambiente de demonstração</div></footer>
+</body>
+</html>
