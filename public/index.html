@@ -1,4 +1,4 @@
-**<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -246,7 +246,7 @@ details.faq .fa{padding:0 2px 18px;color:var(--ink2);font-size:14px}
   <aside class="stage-info">
     <div class="wordmark"><span class="wt"></span><b>ParkPay</b></div>
     <h1>App + backend + banco de dados, <em>rodando de verdade</em>.</h1>
-    <p>Este app consome a API deste servidor — câmera liberada, dados no SQLite, pagamentos confirmados só pelo servidor.</p>
+    <p>Este app consome a API deste servidor — câmera liberada, dados no banco, pagamentos confirmados só pelo servidor.</p>
     <div class="lbl">Tickets de teste para experimentar</div>
     <div class="demo-list" id="demo-list"></div>
     <div class="stage-actions">
@@ -1017,12 +1017,12 @@ SCREENS.env = { render:()=>`<div class="pad" id="env-wrap" style="padding-top:24
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center"><span class="ov">Ambiente</span>
         <span class="chip ${st.env==='test'?'warn':'ok'}">${st.env==='test'?'TESTES':'PRODUÇÃO'}</span></div>
-      <div class="mono" style="font-size:11.5px;color:var(--ink2);margin-top:10px">backend: ${esc(location.origin)} · contrato ${st.contractVersion} · banco: SQLite (parkpay.db)</div>
+      <div class="mono" style="font-size:11.5px;color:var(--ink2);margin-top:10px">backend: ${esc(location.origin)} · contrato ${st.contractVersion}</div>
       <div class="mono" style="font-size:11.5px;color:var(--ink2);margin-top:4px">gateway: ${esc(gw.label||'—')}</div>
     </div>
     <div class="ov" style="margin:20px 0 2px;color:var(--green)">Funcionando de verdade</div>
     <div class="card" style="padding:6px 16px">
-      <div class="strow"><span class="sti ok">${ic('check')}</span><div><b>Backend + banco de dados</b><span class="muted">API v1 + SQLite: usuários, tickets, pagamentos, recibos e auditoria persistidos.</span></div></div>
+      <div class="strow"><span class="sti ok">${ic('check')}</span><div><b>Backend + banco de dados</b><span class="muted">API v1: usuários, tickets, pagamentos, recibos e auditoria persistidos.</span></div></div>
       <div class="strow"><span class="sti ok">${ic('check')}</span><div><b>Câmera real</b><span class="muted">getUserMedia + BarcodeDetector (fallback ZXing). Em localhost e HTTPS.</span></div></div>
       <div class="strow"><span class="sti ok">${ic('check')}</span><div><b>Valores e status no servidor</b><span class="muted">cotação com quoteId; "pago" só após confirmação; idempotência anti-duplicidade.</span></div></div>
       <div class="strow"><span class="sti ok">${ic('check')}</span><div><b>Contas e sessões</b><span class="muted">senhas com hash+salt, tokens com expiração, rate limit, registro de auditoria.</span></div></div>
@@ -1036,7 +1036,7 @@ SCREENS.env = { render:()=>`<div class="pad" id="env-wrap" style="padding-top:24
     <div class="card" style="padding:6px 16px">
       <div class="strow"><span class="sti todo">${ic('banknote')}</span><div><b>Credenciais de PSP</b><span class="muted">PSP_ACCESS_TOKEN (secreta, só no servidor) + chave pública para o SDK de cartão.</span></div></div>
       <div class="strow"><span class="sti todo">${ic('plug')}</span><div><b>Conectores reais</b><span class="muted">API de tickets/tarifas + endpoint de liberação de saída de cada estacionamento parceiro.</span></div></div>
-      <div class="strow"><span class="sti todo">${ic('server')}</span><div><b>Escala</b><span class="muted">migrar SQLite → PostgreSQL; deploy com HTTPS (Render/Railway).</span></div></div>
+      <div class="strow"><span class="sti todo">${ic('server')}</span><div><b>Escala</b><span class="muted">PostgreSQL + plano de servidor pago, quando o volume justificar.</span></div></div>
     </div>
     <div class="ov" style="margin:20px 0 4px">Auditoria (servidor)</div>
     ${st.audit&&st.audit.length? st.audit.map(a=>`<div class="txn"><span class="mg lt" style="width:36px;height:36px">${ic('shield-check')}</span>
@@ -1432,4 +1432,4 @@ function semBackend(){
 })();
 </script>
 </body>
-</html>**
+</html>
