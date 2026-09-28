@@ -1,7 +1,6 @@
 /* ============================================================
-   ParkPay · backend + banco em arquivo JSON (versão Render-free)
+   ParkPay · backend + banco em arquivo JSON
    100% JavaScript puro — nenhum módulo nativo para compilar.
-   Mesma API v1 do app (index.html não muda nada).
    npm install && npm start → http://localhost:3000
    ============================================================ */
 import express from 'express';
@@ -80,7 +79,7 @@ function computar(t, exitAt) {
 const QUOTES = new Map();
 function cotar(t) { const q = computar(t); QUOTES.set(q.quoteId, q); return q; }
 
-/* ---------- views (formato que o app consome) ---------- */
+/* ---------- views ---------- */
 const verUsuario = u => ({ id: u.id, name: u.nome, email: u.email, phone: u.telefone, role: u.papel,
   wallet: u.carteira, settings: u.config || {}, isTest: TESTE });
 function verRecibo(r) { const pk = est(r.estacionamento_id);
@@ -370,8 +369,7 @@ app.delete('/v1/methods/cards/:id', auth, (req, res) => {
   res.json({ removed: true });
 });
 
-/* ============ webhook do PSP — o corpo NÃO é prova de pagamento:
-   sempre reconsultamos o PSP antes de confirmar. ============ */
+/* ============ webhook do PSP — o corpo NÃO é prova de pagamento ============ */
 app.all('/v1/webhooks/psp', async (req, res) => {
   try {
     const pspId = req.query['data.id'] || req.body?.data?.id || req.body?.paymentIntentId;
@@ -474,11 +472,10 @@ function semear() {
         { code: 'connector_notified', ts: exitAt - 2000, d: 'seed' }, { code: 'receipt_issued', ts: exitAt, d: 'seed' }],
       linhas: q.lines, minutos: q.mins, pix_payload: null, pix_expira: null, pix_qr: null };
     db.pagamentos.push(pi);
-    const rc = { id: 'rc_' + rid(6).toLowerCase(), pagamento_id: pi.id, ticket_codigo: code,
+    db.recibos.push({ id: 'rc_' + rid(6).toLowerCase(), pagamento_id: pi.id, ticket_codigo: code,
       estacionamento_id: parkId, entrada_em: entryAt, pago_em: exitAt, metodo_label: label, total: q.total,
       auth: 'AUT-' + rid(6), codigo_validacao: String(1000 + (hashCod(code + pi.id) % 9000)),
-      valido_ate: exitAt + 30 * 60000 };
-    db.recibos.push(rc);
+      valido_ate: exitAt + 30 * 60000 });
     trow.status = 'paid'; trow.pago_via = 'app'; trow.pagamento_id = pi.id;
   };
   pago('PP-2417-0977', 'parkcenter', ana.id, t - 3 * D - 205 * 60000, t - 3 * D, 'card', 'Visa •••• 4242');
@@ -501,7 +498,6 @@ const valido = carregado && Array.isArray(carregado.usuarios) && Array.isArray(c
   && Array.isArray(carregado.tickets) && Array.isArray(carregado.pagamentos) && Array.isArray(carregado.recibos);
 db = valido ? carregado : estruturaVazia();
 if (!valido && TESTE) semear();
-// pagamentos pendentes de um restart anterior não travam tickets para sempre:
 db.pagamentos.forEach(p => { if (['pending', 'processing', 'requires_confirmation'].includes(p.status)) p.status = 'failed'; });
 salvar();
 
